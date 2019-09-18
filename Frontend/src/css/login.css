@@ -1,0 +1,37 @@
+.failureText {
+   color: #b00020;
+   margin-bottom: 10px;
+ }
+ 
+ .successText {
+   color: #00796b;
+   margin-bottom: 10px;
+ }
+ 
+ .background {
+   background-color: #222222;
+   overflow: hidden;
+   height: 100vh;
+ }
+ 
+ .login-form-wrapper {
+   margin-left: 35%;
+   margin-top: 10%;
+   width: 30%;
+ 
+   padding: 5%;
+ 
+   border: 2px solid black;
+   border-radius: 30px;
+   background-color: #333333;
+   
+   height: unset;
+ }
+ 
+ .form-group {
+   width: 100%;
+ }
+ 
+ #username, #password {
+   background-color: #f5f5f5;
+ }

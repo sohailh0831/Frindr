@@ -1,0 +1,59 @@
+body {
+   background-color: #222222;
+   padding-bottom: -40px;
+ }
+ 
+ .col {
+   background-color: #222222;
+ }
+ 
+ .row {
+   background-color: #222222;
+ }
+ 
+ .white {
+   color: rgba(255,255,255,0.8);
+ }
+ 
+ a.nav-link:visited {
+   color: #FFFFFF !important
+ }
+ 
+ /* form styles */
+ input[type="text"], textarea[class="form-control"] {
+   background-color: #F5F5F5
+ }
+ 
+ input[type="text"]:focus, textarea[class="form-control"]:focus {
+   background-color: #F5F5F5
+ }
+ 
+ /* searchbar button */
+ .navbar .btn, .post-container .btn, .btn[type="submit"] {
+   color: rgba(255,255,255,0.5);
+ }
+ 
+ p {
+   color: white
+ }
+ 
+ a:link {
+   color: white
+ }
+ 
+ a:visited {
+   color: grey
+ }
+ 
+ a:visited:hover {
+   color: grey
+ }
+ 
+ a:link:hover {
+   color: white
+ }
+ 
+ a:active{
+   color: white
+ }
+ 
