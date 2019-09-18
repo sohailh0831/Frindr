@@ -35,15 +35,12 @@ let dbInfo = {
 const LocalStrategy = require('passport-local').Strategy;
 const AuthenticationFunctions = require('../Authentication.js');
 
-
-router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   return res.render('platform/login.hbs', {
     error: req.flash('error'),
-    success: req.flash('success'),
+    success: req.flash('success')
   });
 });
-
-
 
 router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.authenticate('local', { successRedirect: '/dashboard', failureRedirect: '/login', failureFlash: true }), (req, res) => {
   res.redirect('/dashboard');

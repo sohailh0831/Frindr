@@ -19,7 +19,7 @@ const port = 3000;
 
 app.engine('.hbs', exphbs({
   extname: 'hbs',
-  layoutsDir: path.join(__dirname, 'views/layouts'),
+  defaultLayout: null,
   partialsDir: path.join(__dirname, 'views/partials'),
 }));
 app.set('view engine', '.hbs');
