@@ -1,0 +1,26 @@
+{
+  "name": "frindr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/sohailh0831/Frindr.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sohailh0831/Frindr/issues"
+  },
+  "homepage": "https://github.com/sohailh0831/Frindr#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
+    "hbs": "^4.0.4",
+    "method-override": "^3.0.0",
+    "mysql": "^2.17.1"
+  }
+}
