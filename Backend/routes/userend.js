@@ -25,7 +25,7 @@ let dbInfo = {
 
   connectionLimit: 100,
   host: '67.207.85.51',
-  user: 'root',
+  user: 'frindrDB',
   password: 'PurdueTesting1!',
   database: 'frindr',
   port: 3306,
@@ -63,8 +63,8 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
           let user = {
             identifier: results[0].id,
             username: results[0].username,
-            firstName: results[0].firstname,
-            lastName: results[0].lastname,
+            firstName: results[0].first_name,
+            lastName: results[0].last_name,
           };
           con.end();
           return done(null, user);
@@ -97,17 +97,13 @@ router.get('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, re
 
 
 router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
-  let firstname = req.body.firstname;
-  let lastname = req.body.lastname;
-  let username = req.body.username;
-  let password = req.body.password;
-
-  req.checkBody('firstname', 'First Name field is required.').notEmpty();
-  req.checkBody('lastname', 'Last Name field is required.').notEmpty();
+  req.checkBody('firstName', 'First Name field is required.').notEmpty();
+  req.checkBody('lastName', 'Last Name field is required.').notEmpty();
+  req.checkBody('email', 'Email field is required.').notEmpty();
   req.checkBody('username', 'Username field is required.').notEmpty();
-  req.checkBody('password', 'New Password field is required.').notEmpty();
-  req.checkBody('repassword', 'Confirm New password field is required.').notEmpty();
-  req.checkBody('repassword', 'New password does not match confirmation password field.').equals(req.body.password);
+  req.checkBody('password', 'Password field is required.').notEmpty();
+  req.checkBody('password2', 'Confirm password field is required.').notEmpty();
+  req.checkBody('password2', 'Password does not match confirmation password field.').equals(req.body.password);
 
   let formErrors = req.validationErrors();
   if (formErrors) {
@@ -116,7 +112,7 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   }
 
   let con = mysql.createConnection(dbInfo);
-  con.query(`SELECT * FROM users WHERE user_name=${mysql.escape(req.body.username)};`, (error, results, fields) => { //checks to see if username is already taken
+  con.query(`SELECT * FROM users WHERE username=${mysql.escape(req.body.username)};`, (error, results, fields) => { //checks to see if username is already taken
     if (error) {
       console.log(error.stack);
       con.end();
@@ -127,7 +123,7 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
       let userid = uuidv4();
       let salt = bcrypt.genSaltSync(10);
       let hashedPassword = bcrypt.hashSync(req.body.password, salt);
-      con.query(`INSERT INTO users (user_id,user_name, password, first_name, last_name) VALUES (${mysql.escape(userid)}, ${mysql.escape(username)}, '${hashedPassword}', ${mysql.escape(req.body.firstname)}, ${mysql.escape(req.body.lastname)});`, (error, results, fields) => {
+      con.query(`INSERT INTO users (id,username, password, first_name, last_name) VALUES (${mysql.escape(userid)}, ${mysql.escape(req.body.username)}, '${hashedPassword}', ${mysql.escape(req.body.firstName)}, ${mysql.escape(req.body.lastName)});`, (error, results, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
@@ -152,13 +148,8 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
       con.end();
       req.flash('error', 'Username is already taken');
       return res.redirect('/register');
-
     }
-
-
-  }); //initial query
-
-
+  });
 });
 
 
