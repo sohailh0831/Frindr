@@ -190,8 +190,7 @@ router.post('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, 
           con.end();
           return;
         }
-          // let passwordResetURL = `http://67.207.85.51/reset-password/${randomID}`;
-          let passwordResetURL = `http://localhost:3000/reset-password/${randomID}`;
+          let passwordResetURL = `http://67.207.85.51/reset-password/${randomID}`;
           let emailContent = `<p>Hi ${results[0].first_name} ${results[0].last_name},<br><br>Please use the following link to reset your password: ${passwordResetURL}</p><p><br>Best,</p><p>Frindr Team</p>`;
           const mailOptions = {
             from: 'FrindrPurdue@gmail.com',
