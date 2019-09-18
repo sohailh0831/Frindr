@@ -16,13 +16,6 @@ const mysql = require('mysql');
 const moment = require('moment');
 
 let dbInfo = {
-  /*
-    host: "localhost",
-    user: "root",
-    password: "cs252project!",
-    database : 'BruhView'
-  */
-
   connectionLimit: 100,
   host: '67.207.85.51',
   user: 'frindrDB',
@@ -34,6 +27,10 @@ let dbInfo = {
 
 const LocalStrategy = require('passport-local').Strategy;
 const AuthenticationFunctions = require('../Authentication.js');
+
+router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  return res.redirect('/dashboard');
+});
 
 router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   return res.render('platform/login.hbs', {
@@ -93,9 +90,6 @@ router.get('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, re
   });
 });
 
-
-
-
 router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   req.checkBody('firstName', 'First Name field is required.').notEmpty();
   req.checkBody('lastName', 'Last Name field is required.').notEmpty();
@@ -152,11 +146,15 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   });
 });
 
-
 router.get('/logout', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   req.logout();
   req.session.destroy();
   return res.redirect('/login');
+});
+
+
+router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  return res.render('platform/dashboard.hbs');
 });
 
 
