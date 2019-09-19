@@ -1,0 +1,25 @@
+<html>
+  <head>
+	  <script src="lib/geolib.js"></script>
+  </head>
+  <body>
+  <div id="navbar"><span>Red Stapler - Geolocation API</span></div>
+  <div id="wrapper">
+    <button onclick="findLocation()">Get User Location</button>
+    <div id="output"></div>
+  </div>
+  
+  <script>
+	  import { getDistance } from 'geolib';
+
+	function findLocation() {
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(function(position){
+			console.log(position);
+			console.log(geolib.getDistance(position.coords, {latitude: 51.525, longitude: 7.4575,}));
+		});
+	}
+	}
+  </script>
+  </body>
+</html>

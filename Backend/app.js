@@ -12,6 +12,7 @@ const session = require('express-session');
 var passport = require("passport");
 var request = require("request");
 
+
 const app = express();
 
 // Start HTTP Server
@@ -48,6 +49,8 @@ app.use(passport.session());
 
 // Use routes
 app.use('/', userend);
+
+//AIzaSyDsppSm82CGZMZQTuEuNFPK5hikt9aquPs
 
 // Static folder
 app.use(express.static(path.join(__dirname, '/public')));

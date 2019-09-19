@@ -15,6 +15,9 @@ var request = require("request");
 const mysql = require('mysql');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
+const geolib = require('geolib');
+
+
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
@@ -41,6 +44,13 @@ router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
 
 router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   return res.render('platform/login.hbs', {
+    error: req.flash('error'),
+    success: req.flash('success')
+  });
+});
+
+router.get('/location', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
+  return res.render('platform/locationTestPage.hbs', {
     error: req.flash('error'),
     success: req.flash('success')
   });
@@ -294,5 +304,10 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
   return res.render('platform/dashboard.hbs');
 });
 
+router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
+  var distance = geolib.getDistance({latitude: req.params.lat1, longitude: req.params.lng1 }, {latitude: req.params.lat2, longitude: req.params.lng2});
+ 
+  res.send('Distance from ' + req.params.lat1 + ',' + req.params.lng1 + ' to ' + req.params.lat2 + ',' + req.params.lng2 + ' is ' + distance + ' km');
+});
 
 module.exports = router;
