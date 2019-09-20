@@ -22,6 +22,7 @@ import {
   patchInterests,
   patchName,
   getProfile,
+  deleteProfile,
 } from "../functions/profile";
 let transporter = nodemailer.createTransport({
  service: 'gmail',
@@ -46,6 +47,7 @@ const AuthenticationFunctions = require('../Authentication.js');
 /**Profile stuff */
 router.post('/profile',  postProfile);
 router.get('/profile',  getProfile);
+router.delete('/profile',  deleteProfile);
 router.patch('/name', patchName);
 router.patch('/bio', patchBio);
 router.patch('/interests', patchInterests);

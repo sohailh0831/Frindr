@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --require babel-core/register --recursive test",
     "start": "babel-node app.js"
   },
   "repository": {
@@ -19,8 +19,10 @@
   "homepage": "https://github.com/sohailh0831/Frindr#readme",
   "dependencies": {
     "all": "0.0.0",
+    "babel-polyfill": "^6.26.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
+    "chai-http": "^4.3.0",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.4",
     "express": "^4.17.1",
