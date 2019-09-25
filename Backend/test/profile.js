@@ -92,48 +92,12 @@ describe("Profile",  () => {
                     });
             });
         });
-        describe("DELETE", () => {
-            it('It should return 400 when nothing is included', (done) =>{
+    });
+    describe("/name", () => {
+        it('It should return 400', (done) =>{            
+            describe("PATCH", () => {
                 chai.request('http://localhost:3000')
-                        .delete('/profile')
-                        .end((err, res) => {
-                            res.should.have.status(400);
-                            res.body.should.be.a('object');
-                            res.body.error.should.eql(true)
-                            done();
-                    });
-            });
-            it('It should return 200', (done) =>{
-                chai.request('http://localhost:3000')
-                        .delete('/profile')
-                        .send({
-                            "email": "test@gmail.com",
-                            })
-                        .end((err, res) => {
-                            res.should.have.status(200);
-                            res.body.should.be.a('object');
-                            res.body.error.should.eql(false)
-                            res.body.message.affectedRows.should.eql(1);
-                            done();
-                    });
-            });
-            it('It should return 200', (done) =>{
-                chai.request('http://localhost:3000')
-                        .delete('/profile')
-                        .send({
-                            "email": "test1@gmail.com",
-                            })
-                        .end((err, res) => {
-                            res.should.have.status(200);
-                            res.body.should.be.a('object');
-                            res.body.error.should.eql(false)
-                            res.body.message.affectedRows.should.eql(1);
-                            done();
-                    });
-            });
-            it('It should return 400', (done) =>{
-                chai.request('http://localhost:3000')
-                        .delete('/profile')
+                        .patch('/name')
                         .send({
                             "email": "test1@gmail.com",
                             })
@@ -145,25 +109,223 @@ describe("Profile",  () => {
                     });
             });
         });
-    });
-    describe("/name", () => {
-        describe("PATCH", () => {
-            
+        it('It should return 200', (done) =>{            
+            describe("PATCH", () => {
+                chai.request('http://localhost:3000')
+                        .patch('/name')
+                        .send({
+                            "email": "test1@gmail.com",
+                            "name": "updated",
+                            })
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.error.should.eql(false)
+                            done();
+                    });
+            });
+        });
+        it('It should return 200 and the new name should be there', (done) =>{
+            chai.request('http://localhost:3000')
+                    .get('/profile')
+                    .send({
+                        "email": "test1@gmail.com",
+                        })
+                    .end((err, res) => {
+                        res.should.have.status(200);
+                        res.body.should.be.a('object');
+                        res.body.error.should.eql(false)
+                        res.body.message[0].name.should.eql("updated");
+                        done();
+                });
         });
     });
     describe("/bio", () => {
         describe("PATCH", () => {
-            
+            it('It should return 400', (done) =>{            
+                    chai.request('http://localhost:3000')
+                            .patch('/bio')
+                            .send({
+                                "email": "test1@gmail.com",
+                                })
+                            .end((err, res) => {
+                                res.should.have.status(400);
+                                res.body.should.be.a('object');
+                                res.body.error.should.eql(true)
+                                done();
+                        });
+            });
+            it('It should return 200', (done) =>{            
+                    chai.request('http://localhost:3000')
+                            .patch('/bio')
+                            .send({
+                                "email": "test1@gmail.com",
+                                "bio": "updated",
+                                })
+                            .end((err, res) => {
+                                res.should.have.status(200);
+                                res.body.should.be.a('object');
+                                res.body.error.should.eql(false)
+                                done();
+                        });
+            });
+            it('It should return 200 and the new name should be there', (done) =>{
+                chai.request('http://localhost:3000')
+                        .get('/profile')
+                        .send({
+                            "email": "test1@gmail.com",
+                            })
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.error.should.eql(false)
+                            res.body.message[0].bio.should.eql("updated");
+                            done();
+                    });
+            });
         });
     });
     describe("/interests", () => {
         describe("PATCH", () => {
-            
+            it('It should return 400', (done) =>{            
+                chai.request('http://localhost:3000')
+                        .patch('/interests')
+                        .send({
+                            "email": "test1@gmail.com",
+                            })
+                        .end((err, res) => {
+                            res.should.have.status(400);
+                            res.body.should.be.a('object');
+                            res.body.error.should.eql(true)
+                            done();
+                    });
+        });
+        it('It should return 200', (done) =>{            
+                chai.request('http://localhost:3000')
+                        .patch('/interests')
+                        .send({
+                            "email": "test1@gmail.com",
+                            "interests": {"cool": "updated"},
+                            })
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.error.should.eql(false)
+                            done();
+                    });
+        });
+        it('It should return 200 and the new name should be there', (done) =>{
+            chai.request('http://localhost:3000')
+                    .get('/profile')
+                    .send({
+                        "email": "test1@gmail.com",
+                        })
+                    .end((err, res) => {
+                        res.should.have.status(200);
+                        res.body.should.be.a('object');
+                        res.body.error.should.eql(false)
+                        res.body.message[0].interests.should.eql('{"cool": "updated"}');
+                        done();
+                });
+        });
         });
     });
     describe("/characteristics", () => {
         describe("PATCH", () => {
-            
+            it('It should return 400', (done) =>{            
+                chai.request('http://localhost:3000')
+                        .patch('/characteristics')
+                        .send({
+                            "email": "test1@gmail.com",
+                            })
+                        .end((err, res) => {
+                            res.should.have.status(400);
+                            res.body.should.be.a('object');
+                            res.body.error.should.eql(true)
+                            done();
+                    });
+        });
+        it('It should return 200', (done) =>{            
+                chai.request('http://localhost:3000')
+                        .patch('/characteristics')
+                        .send({
+                            "email": "test1@gmail.com",
+                            "characteristics": {"cool": "updated"},
+                            })
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.error.should.eql(false)
+                            done();
+                    });
+        });
+        it('It should return 200 and the new name should be there', (done) =>{
+            chai.request('http://localhost:3000')
+                    .get('/profile')
+                    .send({
+                        "email": "test1@gmail.com",
+                        })
+                    .end((err, res) => {
+                        res.should.have.status(200);
+                        res.body.should.be.a('object');
+                        res.body.error.should.eql(false)
+                        res.body.message[0].interests.should.eql('{"cool": "updated"}');
+                        done();
+                });
+        });
+        });
+    });
+    describe("DELETE", () => {
+        it('It should return 400 when nothing is included', (done) =>{
+            chai.request('http://localhost:3000')
+                    .delete('/profile')
+                    .end((err, res) => {
+                        res.should.have.status(400);
+                        res.body.should.be.a('object');
+                        res.body.error.should.eql(true)
+                        done();
+                });
+        });
+        it('It should return 200', (done) =>{
+            chai.request('http://localhost:3000')
+                    .delete('/profile')
+                    .send({
+                        "email": "test@gmail.com",
+                        })
+                    .end((err, res) => {
+                        res.should.have.status(200);
+                        res.body.should.be.a('object');
+                        res.body.error.should.eql(false)
+                        res.body.message.affectedRows.should.eql(1);
+                        done();
+                });
+        });
+        it('It should return 200', (done) =>{
+            chai.request('http://localhost:3000')
+                    .delete('/profile')
+                    .send({
+                        "email": "test1@gmail.com",
+                        })
+                    .end((err, res) => {
+                        res.should.have.status(200);
+                        res.body.should.be.a('object');
+                        res.body.error.should.eql(false)
+                        res.body.message.affectedRows.should.eql(1);
+                        done();
+                });
+        });
+        it('It should return 400', (done) =>{
+            chai.request('http://localhost:3000')
+                    .delete('/profile')
+                    .send({
+                        "email": "test1@gmail.com",
+                        })
+                    .end((err, res) => {
+                        res.should.have.status(400);
+                        res.body.should.be.a('object');
+                        res.body.error.should.eql(true)
+                        done();
+                });
         });
     });
 });

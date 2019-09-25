@@ -46,6 +46,7 @@ export const getProfile = async (req, res) => {
       throw new Error("Need email")
     }
     let results = await getProfileStore(req);
+    console.log(results)
     if(results.error == false){
       return res.status('200').send(results);
     }
