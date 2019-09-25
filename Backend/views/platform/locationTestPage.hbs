@@ -9,16 +9,5 @@
     <div id="output"></div>
   </div>
   
-  <script>
-
-	function findLocation() {
-	if (navigator.geolocation) {
-		navigator.geolocation.getCurrentPosition(function(position){
-			console.log(position);
-			console.log(geolib.getDistance(position.coords, {latitude: 51.525, longitude: 7.4575,}));
-		});
-	}
-	}
-  </script>
   </body>
 </html>
