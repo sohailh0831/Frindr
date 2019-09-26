@@ -46,7 +46,6 @@ export const getProfile = async (req, res) => {
       throw new Error("Need email")
     }
     let results = await getProfileStore(req);
-    console.log(results)
     if(results.error == false){
       return res.status('200').send(results);
     }
@@ -276,7 +275,7 @@ function patchCharacteristicsStore(req){
   return new Promise(resolve => {
     try{
     let con = mysql.createConnection(dbInfo);
-    con.query(`UPDATE profile SET characteristics='${mysql.escape(characteristics)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+    con.query(`UPDATE profile SET characteristics='${characteristics}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
       if (error) {
         console.log(error.stack);
         con.end();
