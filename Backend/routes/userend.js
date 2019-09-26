@@ -73,7 +73,7 @@ router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.a
 passport.use(new LocalStrategy({ passReqToCallback: true, },
   function (req, username, password, done) {
     let con = mysql.createConnection(dbInfo);
-    con.query(`SELECT * FROM users WHERE username=${mysql.escape(username)};`, (error, results, fields) => {
+    con.query(`SELECT * FROM users WHERE username=${mysql.escape(username)} OR email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
         console.log(error.stack);
         con.end();
