@@ -45,13 +45,13 @@ const LocalStrategy = require('passport-local').Strategy;
 const AuthenticationFunctions = require('../Authentication.js');
 
 /**Profile stuff */
-router.post('/profile',  postProfile);
-router.get('/profile',  getProfile);
-router.delete('/profile',  deleteProfile);
-router.patch('/name', patchName);
-router.patch('/bio', patchBio);
-router.patch('/interests', patchInterests);
-router.patch('/characteristics', patchCharacteristics);
+router.post('/api/profile',  postProfile);
+router.get('/api/profile',  getProfile);
+router.delete('/api/profile',  deleteProfile);
+router.patch('/api/name', patchName);
+router.patch('/api/bio', patchBio);
+router.patch('/api/interests', patchInterests);
+router.patch('/api/characteristics', patchCharacteristics);
 
 
 
@@ -312,6 +312,10 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
 
 router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.render('platform/dashboard.hbs');
+});
+
+router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  return res.render('platform/profile.hbs');
 });
 
 
