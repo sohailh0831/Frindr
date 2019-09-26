@@ -11,7 +11,7 @@ describe("Profile",  () => {
         describe("POST", () => {
             it('It should return 400 when missing email', (done) =>{
                 chai.request('http://localhost:3000')
-                    .post('/profile')
+                    .post('/api/profile')
                     .end((err, res) => {
                         res.should.have.status(400);
                         res.body.should.be.a('object');
@@ -21,7 +21,7 @@ describe("Profile",  () => {
             });
             it('It should return 201 when missing anything other than email', (done) =>{
                 chai.request('http://localhost:3000')
-                        .post('/profile')
+                        .post('/api/profile')
                         .send({
                             "email": "test@gmail.com",
                             })
@@ -35,7 +35,7 @@ describe("Profile",  () => {
             });
             it('It should return 400 when the email is taken', (done) =>{
                 chai.request('http://localhost:3000')
-                        .post('/profile')
+                        .post('/api/profile')
                         .send({
                             "email": "test@gmail.com",
                             })
@@ -48,7 +48,7 @@ describe("Profile",  () => {
             });
             it('It should return 201 when everything is included', (done) =>{
                 chai.request('http://localhost:3000')
-                        .post('/profile')
+                        .post('/api/profile')
                         .send({
                             "email": "test1@gmail.com",
                             "name": "yo",
@@ -69,7 +69,7 @@ describe("Profile",  () => {
         describe("GET", () => {
             it('It should return 400 when nothing is included', (done) =>{
                 chai.request('http://localhost:3000')
-                        .delete('/profile')
+                        .delete('/api/profile')
                         .end((err, res) => {
                             res.should.have.status(400);
                             res.body.should.be.a('object');
@@ -79,7 +79,7 @@ describe("Profile",  () => {
             });
             it('It should return 200', (done) =>{
                 chai.request('http://localhost:3000')
-                        .get('/profile')
+                        .get('/api/profile')
                         .send({
                             "email": "test@gmail.com",
                             })
@@ -97,7 +97,7 @@ describe("Profile",  () => {
         it('It should return 400', (done) =>{            
             describe("PATCH", () => {
                 chai.request('http://localhost:3000')
-                        .patch('/name')
+                        .patch('/api/name')
                         .send({
                             "email": "test1@gmail.com",
                             })
@@ -112,7 +112,7 @@ describe("Profile",  () => {
         it('It should return 200', (done) =>{            
             describe("PATCH", () => {
                 chai.request('http://localhost:3000')
-                        .patch('/name')
+                        .patch('/api/name')
                         .send({
                             "email": "test1@gmail.com",
                             "name": "updated",
@@ -127,7 +127,7 @@ describe("Profile",  () => {
         });
         it('It should return 200 and the new name should be there', (done) =>{
             chai.request('http://localhost:3000')
-                    .get('/profile')
+                    .get('/api/profile')
                     .send({
                         "email": "test1@gmail.com",
                         })
@@ -144,7 +144,7 @@ describe("Profile",  () => {
         describe("PATCH", () => {
             it('It should return 400', (done) =>{            
                     chai.request('http://localhost:3000')
-                            .patch('/bio')
+                            .patch('/api/bio')
                             .send({
                                 "email": "test1@gmail.com",
                                 })
@@ -157,7 +157,7 @@ describe("Profile",  () => {
             });
             it('It should return 200', (done) =>{            
                     chai.request('http://localhost:3000')
-                            .patch('/bio')
+                            .patch('/api/bio')
                             .send({
                                 "email": "test1@gmail.com",
                                 "bio": "updated",
@@ -171,7 +171,7 @@ describe("Profile",  () => {
             });
             it('It should return 200 and the new name should be there', (done) =>{
                 chai.request('http://localhost:3000')
-                        .get('/profile')
+                        .get('/api/profile')
                         .send({
                             "email": "test1@gmail.com",
                             })
@@ -189,7 +189,7 @@ describe("Profile",  () => {
         describe("PATCH", () => {
             it('It should return 400', (done) =>{            
                 chai.request('http://localhost:3000')
-                        .patch('/interests')
+                        .patch('/api/interests')
                         .send({
                             "email": "test1@gmail.com",
                             })
@@ -202,7 +202,7 @@ describe("Profile",  () => {
         });
         it('It should return 200', (done) =>{            
                 chai.request('http://localhost:3000')
-                        .patch('/interests')
+                        .patch('/api/interests')
                         .send({
                             "email": "test1@gmail.com",
                             "interests": {"cool": "updated"},
@@ -216,7 +216,7 @@ describe("Profile",  () => {
         });
         it('It should return 200 and the new name should be there', (done) =>{
             chai.request('http://localhost:3000')
-                    .get('/profile')
+                    .get('/api/profile')
                     .send({
                         "email": "test1@gmail.com",
                         })
@@ -234,7 +234,7 @@ describe("Profile",  () => {
         describe("PATCH", () => {
             it('It should return 400', (done) =>{            
                 chai.request('http://localhost:3000')
-                        .patch('/characteristics')
+                        .patch('/api/characteristics')
                         .send({
                             "email": "test1@gmail.com",
                             })
@@ -247,7 +247,7 @@ describe("Profile",  () => {
         });
         it('It should return 200', (done) =>{            
                 chai.request('http://localhost:3000')
-                        .patch('/characteristics')
+                        .patch('/api/characteristics')
                         .send({
                             "email": "test1@gmail.com",
                             "characteristics": {"cool": "updated"},
@@ -261,7 +261,7 @@ describe("Profile",  () => {
         });
         it('It should return 200 and the new name should be there', (done) =>{
             chai.request('http://localhost:3000')
-                    .get('/profile')
+                    .get('/api/profile')
                     .send({
                         "email": "test1@gmail.com",
                         })
@@ -278,7 +278,7 @@ describe("Profile",  () => {
     describe("DELETE", () => {
         it('It should return 400 when nothing is included', (done) =>{
             chai.request('http://localhost:3000')
-                    .delete('/profile')
+                    .delete('/api/profile')
                     .end((err, res) => {
                         res.should.have.status(400);
                         res.body.should.be.a('object');
@@ -288,7 +288,7 @@ describe("Profile",  () => {
         });
         it('It should return 200', (done) =>{
             chai.request('http://localhost:3000')
-                    .delete('/profile')
+                    .delete('/api/profile')
                     .send({
                         "email": "test@gmail.com",
                         })
@@ -302,7 +302,7 @@ describe("Profile",  () => {
         });
         it('It should return 200', (done) =>{
             chai.request('http://localhost:3000')
-                    .delete('/profile')
+                    .delete('/api/profile')
                     .send({
                         "email": "test1@gmail.com",
                         })
@@ -316,7 +316,7 @@ describe("Profile",  () => {
         });
         it('It should return 400', (done) =>{
             chai.request('http://localhost:3000')
-                    .delete('/profile')
+                    .delete('/api/profile')
                     .send({
                         "email": "test1@gmail.com",
                         })
