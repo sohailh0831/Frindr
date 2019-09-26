@@ -9,18 +9,24 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
 
         <script>
-
-		var g_location;
-
 			function findLocation() {
 				if (navigator.geolocation) {
 					navigator.geolocation.getCurrentPosition(function(position){
-						g_location = position;
-						document.getElementById('latitude').value = g_location.coords.latitude;
-						document.getElementById('longitude').value = g_location.coords.longitude;
-						console.log(g_location);
+						//This will insert HTML with longitude and latitude information for the form to send to the database
+						//Creates specified HTML inside of the element tagged with getElementById
+						document.getElementById('latitude_input').innerHTML = `<input type='hidden' name='latitude' value=${position.coords.latitude}>`;
+						document.getElementById('longitude_input').innerHTML = `<input type="hidden" name='longitude' value=${position.coords.longitude}>`;
+
+						//enable the button to sign in
+						document.getElementById('m-login__form-action').innerHTML = `
+							<button id="m_login_signin_submit" class="btn btn-focus m-btn m-btn--pill m-btn--custom m-btn--air m-login__btn m-login__btn--primary">Sign In</button>
+						`
 					});
 				}
+					//notify user that frindr must be enabled
+					document.getElementById('m-login__form-action').innerHTML = `
+						<div>Location services must be enabled to use Frindr.</div>
+					`
 			}
 		</script>
         
@@ -99,14 +105,10 @@
 										<a href="/forgot-password" id="m_login_forget_password" class="m-link">Forget Password ?</a>
 									</div>
 								</div>
-                                <div class="row m-login__form-sub">
-                                    <input type='hidden' name='latitude' value='latitude_raw'/>
-								</div>
-                                <div class="row m-login__form-sub">
-								    <input type="hidden" id = 'longitude' name='longitude' value="placeHolder"/>
-								</div>
-					<div class="m-login__form-action">
-									<button id="m_login_signin_submit" class="btn btn-focus m-btn m-btn--pill m-btn--custom m-btn--air m-login__btn m-login__btn--primary">Sign In</button>
+                                <div class="row m-login__form-sub" id = "latitude_input"></div>
+                                <div class="row m-login__form-sub" id = "longitude_input"></div>
+								<div class="m-login__form-action" id="m-login__form-action">
+									<!-- Code for button is determined in the javascript file -->
 								</div>
 							</form>
 						</div>
@@ -114,7 +116,7 @@
 							<span class="m-login__account-msg">
 								Don't have a Frindr profile yet?
 							</span>&nbsp;&nbsp;
-							<a href="/register" class="m-link m-link--light m-login__account-link">Register Now</a>
+							<a href="/register" class="m-link m-link--light m-login__account-link">Register Now</a>		
 						</div>
 
 					</div>
