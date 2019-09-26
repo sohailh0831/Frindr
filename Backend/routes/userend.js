@@ -62,6 +62,7 @@ router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.a
 
 passport.use(new LocalStrategy({ passReqToCallback: true, },
   function (req, username, password, done) {
+    console.log(req.body)
     let con = mysql.createConnection(dbInfo);
     con.query(`SELECT * FROM users WHERE username=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
@@ -78,9 +79,19 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
             identifier: results[0].id,
             username: results[0].username,
             firstName: results[0].first_name,
-            lastName: results[0].last_name,
+            lastName: results[0].last_name,  
           };
-          con.end();
+            
+            
+          con.query(`UPDATE users SET latitude=${mysql.escape(req.body.latitude)}, longitude=${mysql.escape(req.body.longitude)} WHERE username=${mysql.escape(user.username)};`, (error, results, fields) => {
+              //need some error checking here
+              
+              con.end();
+              
+              
+          });  
+               
+          //con.end();
           return done(null, user);
         } else {
           con.end();
@@ -89,6 +100,10 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
 
       }
     });
+        
+    
+    
+    
 
   }));
 
@@ -175,6 +190,7 @@ router.get('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (
     success: req.flash('success')
   });
 });
+
 
 router.post('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   req.flash('success', "If this email exists in our system, you will get a password reset email.");
