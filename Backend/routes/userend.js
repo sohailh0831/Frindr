@@ -15,6 +15,15 @@ var request = require("request");
 const mysql = require('mysql');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
+import {
+  postProfile,
+  patchBio,
+  patchCharacteristics,
+  patchInterests,
+  patchName,
+  getProfile,
+  deleteProfile,
+} from "../functions/profile";
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
@@ -34,6 +43,17 @@ let dbInfo = {
 
 const LocalStrategy = require('passport-local').Strategy;
 const AuthenticationFunctions = require('../Authentication.js');
+
+/**Profile stuff */
+router.post('/profile',  postProfile);
+router.get('/profile',  getProfile);
+router.delete('/profile',  deleteProfile);
+router.patch('/name', patchName);
+router.patch('/bio', patchBio);
+router.patch('/interests', patchInterests);
+router.patch('/characteristics', patchCharacteristics);
+
+
 
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
