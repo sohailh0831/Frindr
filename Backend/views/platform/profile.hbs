@@ -1,0 +1,334 @@
+{{> header}}
+				<div class="m-grid__item m-grid__item--fluid m-wrapper">
+
+					<div class="m-content">
+						{{#if error}}
+						<div class="alert alert-danger alert-dismissible fade show" role="alert">
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							</button>
+							<strong>Oh snap!</strong> {{error}}
+						</div>
+						{{/if}}
+            {{#if success}}
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							</button>
+							<strong>Success!</strong> {{success}}
+						</div>
+						{{/if}}
+
+
+
+             <div class="row">
+							<div class="col-lg-3">
+
+								<!--begin::Portlet-->
+								<div class="m-portlet">
+									<div class="m-portlet__head">
+										<div class="m-portlet__head-caption">
+											<div class="m-portlet__head-title">
+												<span class="m-portlet__head-icon m--hide">
+													<i class="la la-gear"></i>
+												</span>
+												<h3 class="m-portlet__head-text">
+													BudgetWise Profile
+												</h3>
+											</div>
+										</div>
+									</div>
+
+									<!--begin::Form-->
+                  <form class="m-form">
+										<div class="m-portlet__body">
+											<div class="m-form__section m-form__section--first">
+												<div class="form-group m-form__group">
+													<label for="example_input_full_name">Email:</label>
+													<input type="email" disabled="" class="form-control m-input" value="{{user.email}}">
+												</div>
+												<div class="form-group m-form__group">
+													<label>Username:</label>
+													<input type="text" class="form-control m-input" value="{{user.username}}" disabled="">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>First Name:</label>
+													<input type="text" class="form-control m-input" value="{{user.first_name}}" disabled="">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>Last Name:</label>
+													<input type="text" class="form-control m-input" value="{{user.last_name}}" disabled="">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>Currency:</label>
+													<input type="text" class="form-control m-input" value="{{user.currency}}" disabled="">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>Parental Username:</label>
+													<input type="text" class="form-control m-input" value="{{user.parental_username}}" disabled="">
+													<span class="m-form__help">If blank, no parental account exists for your BudgetWise profile</span>
+												</div>
+											</div>
+										</div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+											<div class="m-form__actions m-form__actions">
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-profile-modal">Delete BudgetWise Profile</button>
+											</div>
+										</div>
+                  </form>
+									<!--end::Form-->
+								</div>
+
+								<!--end::Portlet-->
+							</div>
+
+
+
+              <div class="col-lg-3">
+
+								<!--begin::Portlet-->
+								<div class="m-portlet">
+									<div class="m-portlet__head">
+										<div class="m-portlet__head-caption">
+											<div class="m-portlet__head-title">
+												<span class="m-portlet__head-icon m--hide">
+													<i class="la la-gear"></i>
+												</span>
+												<h3 class="m-portlet__head-text">
+													Edit BudgetWise Profile
+												</h3>
+											</div>
+										</div>
+									</div>
+
+									<!--begin::Form-->
+                  <form class="m-form" action="/settings" method="post">
+										<div class="m-portlet__body">
+											<div class="m-form__section m-form__section--first">
+												<div class="form-group m-form__group">
+													<label for="example_input_full_name">Email:</label>
+													<input required="true" type="email" class="form-control m-input" name="email" value="{{user.email}}">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>Current Password</label>
+													<input type="password" required="true" name="currentPassword" class="form-control m-input">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>New Password</label>
+													<input type="password" name="newPassword" class="form-control m-input">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>Confirm New Password</label>
+													<input type="password" name="newPassword2" class="form-control m-input">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>Currency</label>
+													<input type="text" name="currencyChoice" class="form-control m-input" required="true" value="{{user.currency}}">
+                          <span class="m-form__help">Options: EUR, USD, AUD, CAD, or INR</span>
+												</div>
+											</div>
+										</div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+											<div class="m-form__actions m-form__actions">
+												<button type="submit" class="btn btn-primary">Submit</button>
+												<button type="reset" class="btn btn-secondary">Reset</button>
+											</div>
+										</div>
+                  </form>
+									<!--end::Form-->
+								</div>
+
+								<!--end::Portlet-->
+							</div>
+
+
+
+
+
+              <div class="col-lg-3">
+
+								<!--begin::Portlet-->
+								<div class="m-portlet">
+									<div class="m-portlet__head">
+										<div class="m-portlet__head-caption">
+											<div class="m-portlet__head-title">
+												<span class="m-portlet__head-icon m--hide">
+													<i class="la la-gear"></i>
+												</span>
+												<h3 class="m-portlet__head-text">
+													Manage Parental Account
+												</h3>
+											</div>
+										</div>
+									</div>
+
+									<!--begin::Form-->
+                  <form class="m-form" action="/settings" method="post">
+										<div class="m-portlet__body">
+											<div class="m-form__section m-form__section--first">
+												<div class="form-group m-form__group">
+													<label for="example_input_full_name">Parent Email:</label>
+													<input type="email" class="form-control m-input" name="email" value="{{user.parental_username}}">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>New Password</label>
+													<input type="password" name="newPassword" class="form-control m-input">
+												</div>
+                        <div class="form-group m-form__group">
+													<label>Confirm New Password</label>
+													<input type="password" name="newPassword2" class="form-control m-input">
+												</div>
+                        <label class="col-form-label">Notifications</label>
+																<div>
+																	<span class="m-switch m-switch--outline m-switch--icon m-switch--warning">
+																		<label>
+																			<input type="checkbox" name="parentNotifications" {{#if user.parent_notifications}}checked="checked"{{/if}}>
+																			<span></span>
+																		</label>
+																	</span>
+																</div>
+											</div>
+										</div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+											<div class="m-form__actions m-form__actions">
+												<button type="submit" class="btn btn-primary">Submit</button>
+												<button type="reset" class="btn btn-secondary">Reset</button>
+											</div>
+										</div>
+                  </form>
+									<!--end::Form-->
+								</div>
+
+								<!--end::Portlet-->
+							</div>
+
+
+              <div class="col-lg-3">
+
+								<!--begin::Portlet-->
+								<div class="m-portlet">
+									<div class="m-portlet__head">
+										<div class="m-portlet__head-caption">
+											<div class="m-portlet__head-title">
+												<span class="m-portlet__head-icon m--hide">
+													<i class="la la-gear"></i>
+												</span>
+												<h3 class="m-portlet__head-text">
+													Manage Notifications
+												</h3>
+											</div>
+										</div>
+									</div>
+
+									<!--begin::Form-->
+                  <form class="m-form" action="/settings" method="post">
+										<div class="m-portlet__body">
+											<div class="m-form__section m-form__section--first">
+												<label class="col-form-label">Notifications</label>
+																<div>
+																	<span class="m-switch m-switch--outline m-switch--icon m-switch--warning">
+																		<label>
+																			<input type="checkbox" name="notifications" {{#if user.notifications}}checked="checked"{{/if}}>
+																			<span></span>
+																		</label>
+																	</span>
+																</div>
+                        <div class="form-group m-form__group">
+													<label>Notification Frequency</label>
+													<input type="number" name="notificationFrequency" class="form-control m-input" value="{{user.notification_frequency}}">
+                          <span class="m-form__help">0 = daily | 1 = biweekly | 2 = monthly</span>
+												</div>
+											</div>
+										</div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+											<div class="m-form__actions m-form__actions">
+												<button type="submit" class="btn btn-primary">Submit</button>
+											</div>
+										</div>
+                  </form>
+									<!--end::Form-->
+								</div>
+
+								<!--end::Portlet-->
+							</div>
+
+
+
+     <div class="col-lg-3">
+
+								<!--begin::Portlet-->
+								<div class="m-portlet">
+									<div class="m-portlet__head">
+										<div class="m-portlet__head-caption">
+											<div class="m-portlet__head-title">
+												<span class="m-portlet__head-icon m--hide">
+													<i class="la la-gear"></i>
+												</span>
+												<h3 class="m-portlet__head-text">
+													Lock Account (Only Parent Account Can Unlock)
+												</h3>
+											</div>
+										</div>
+									</div>
+
+									<!--begin::Form-->
+                  <form class="m-form" action="/settingslocked" method="post">
+										<div class="m-portlet__body">
+											<div class="m-form__section m-form__section--first">
+												<label class="col-form-label"></label>
+																<div>
+																	<span class="m-switch m-switch--outline m-switch--icon m-switch--warning">
+																		<label>
+                                     <a href="/settingsunlocked" class="btn btn-primary">Unlock Account</a>
+                                     <a href="/settingslocked" class="btn btn-danger">Lock Account</a>
+																			<span></span>
+																		</label>
+																	</span>
+																</div>
+											</div>
+										</div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+											<div class="m-form__actions m-form__actions">
+											</div>
+										</div>
+                  </form>
+									<!--end::Form-->
+								</div>
+
+								<!--end::Portlet-->
+							</div>
+
+
+
+						</div>
+
+
+
+						<!--End::Main Portlet-->
+					</div>
+				</div>
+
+        <div class="modal fade" id="delete-profile-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <form action="/user/delete-profile" method="post">
+							<div class="modal-dialog" role="document">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h5 class="modal-title" id="exampleModalLabel">Delete your BudgetWise Profile</h5>
+										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">&times;</span>
+										</button>
+									</div>
+									<div class="modal-body">
+										<p>Please only proceed if you'd like to delete your BudgetWise Profile. Once deleted, all data is lost and unrecoverable.</p>
+                    <div class="form-group">
+												<label for="password" class="form-control-label">Password:</label>
+												<input type="password" name="password" class="form-control m-input" placeholder="Enter your BudgwtWise password">
+											</div>
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+										<button type="submit" class="btn btn-danger">Delete</button>
+									</div>
+								</div>
+							</div>
+						</div>
+            </form>
+			{{> footer}}

@@ -15,6 +15,15 @@ var request = require("request");
 const mysql = require('mysql');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
+import {
+  postProfile,
+  patchBio,
+  patchCharacteristics,
+  patchInterests,
+  patchName,
+  getProfile,
+  deleteProfile,
+} from "../functions/profile";
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
@@ -35,6 +44,17 @@ let dbInfo = {
 const LocalStrategy = require('passport-local').Strategy;
 const AuthenticationFunctions = require('../Authentication.js');
 
+/**Profile stuff */
+router.post('/api/profile',  postProfile);
+router.get('/api/profile',  getProfile);
+router.delete('/api/profile',  deleteProfile);
+router.patch('/api/name', patchName);
+router.patch('/api/bio', patchBio);
+router.patch('/api/interests', patchInterests);
+router.patch('/api/characteristics', patchCharacteristics);
+
+
+
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
 });
@@ -53,7 +73,7 @@ router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.a
 passport.use(new LocalStrategy({ passReqToCallback: true, },
   function (req, username, password, done) {
     let con = mysql.createConnection(dbInfo);
-    con.query(`SELECT * FROM users WHERE username=${mysql.escape(username)};`, (error, results, fields) => {
+    con.query(`SELECT * FROM users WHERE username=${mysql.escape(username)} OR email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
         console.log(error.stack);
         con.end();
@@ -292,6 +312,10 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
 
 router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.render('platform/dashboard.hbs');
+});
+
+router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  return res.render('platform/profile.hbs');
 });
 
 
