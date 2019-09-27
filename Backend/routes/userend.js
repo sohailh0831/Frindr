@@ -125,7 +125,13 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   req.checkBody('password', 'Password field is required.').notEmpty();
   req.checkBody('password2', 'Confirm password field is required.').notEmpty();
   req.checkBody('password2', 'Password does not match confirmation password field.').equals(req.body.password);
-
+  if (req.body.password.length < 3) {
+      req.flash('error', 'Password must be longer than 3 characters.');
+      return res.redirect('/register');
+  } else if (req.body.password.includes(' ')) {
+    req.flash('error', 'Password cannot contain spaces.');
+    return res.redirect('/register');
+  }
   let formErrors = req.validationErrors();
   if (formErrors) {
     req.flash('error', formErrors[0].msg);
@@ -315,7 +321,71 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
 });
 
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  return res.render('platform/profile.hbs');
+  let con = mysql.createConnection(dbInfo);
+  con.query( `SELECT * FROM users WHERE username=${mysql.escape(req.user.username)}`, (error, results, fields) => {
+    if (error) {
+      console.log(error.stack);
+      con.end();
+      return;
+    }
+    if (results.length === 1) {
+      con.end();
+      return res.render('platform/profile.hbs', {
+        error: req.flash('error'),
+        success: req.flash('success'),
+        user: results[0],
+      });
+    } else {
+      req.flash('error', 'Error');
+      con.end();
+      return res.redirect('/dashboard');
+    }
+  });
+});
+
+router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  req.checkBody('currentPassword', 'Current Password field is required.').notEmpty();
+  req.checkBody('newPassword2', 'New password does not match confirmation password field.').equals(req.body.newPassword);
+  let formErrors = req.validationErrors();
+  if (formErrors) {
+	    req.flash('error', formErrors[0].msg);
+      return res.redirect('/profile');
+	}
+  if (req.body.newPassword.length < 3) {
+      req.flash('error', 'Password must be longer than 3 characters.');
+      return res.redirect('/profile');
+  } else if (req.body.newPassword.includes(' ')) {
+    req.flash('error', 'Password cannot contain spaces.');
+    return res.redirect('/profile');
+  }
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM users WHERE id=${mysql.escape(req.user.identifier)};`, (error, results, fields) => {
+    if (error) {
+      console.log(error.stack);
+      con.end();
+      return;
+    }
+    if (results.length == 1) {
+      if (bcrypt.compareSync(req.body.currentPassword, results[0].password)) {
+          let salt = bcrypt.genSaltSync(10);
+          let hashedPassword = bcrypt.hashSync(req.body.newPassword, salt);
+          con.query(`UPDATE users SET password=${mysql.escape(hashedPassword)} WHERE id=${mysql.escape(req.user.identifier)};`, (error, results, fields) => {
+            if (error) {
+              console.log(error.stack);
+              con.end();
+              return res.send();
+            }
+            con.end();
+            req.flash('success', 'Password successfully updated.');
+            return res.redirect('/profile');
+          });
+      } else {
+        req.flash('error', 'Current password is incorrect.')
+        con.end();
+        return res.redirect('/profile');
+      }
+    }
+  });
 });
 
 
