@@ -57,6 +57,15 @@ export const getProfile = async (req, res) => {
   }
 }
 
+export const getProfileIntern = async (req) => {
+  try {
+    let results = await getProfileStore(req);
+    return results;
+    }catch(error){
+      return error
+    }
+}
+
 export const patchName = async (req, res) => {
   try {
     if (!req.body.email || !req.body.name) {

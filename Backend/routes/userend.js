@@ -24,6 +24,9 @@ import {
   getProfile,
   deleteProfile,
 } from "../functions/profile";
+import {
+  getMatches
+} from "../functions/matching";
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
@@ -53,7 +56,8 @@ router.patch('/api/bio', patchBio);
 router.patch('/api/interests', patchInterests);
 router.patch('/api/characteristics', patchCharacteristics);
 
-
+/**Matching algorithm */
+router.get('/api/matches', getMatches)
 
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
