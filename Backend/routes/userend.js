@@ -118,10 +118,8 @@ router.get('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, re
 });
 
 router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
-  req.checkBody('firstName', 'First Name field is required.').notEmpty();
-  req.checkBody('lastName', 'Last Name field is required.').notEmpty();
+  req.checkBody('name', 'Name field is required.').notEmpty();
   req.checkBody('email', 'Email field is required.').notEmpty();
-  req.checkBody('username', 'Username field is required.').notEmpty();
   req.checkBody('password', 'Password field is required.').notEmpty();
   req.checkBody('password2', 'Confirm password field is required.').notEmpty();
   req.checkBody('password2', 'Password does not match confirmation password field.').equals(req.body.password);
@@ -139,7 +137,7 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   }
 
   let con = mysql.createConnection(dbInfo);
-  con.query(`SELECT * FROM users WHERE username=${mysql.escape(req.body.username)};`, (error, results, fields) => { //checks to see if username is already taken
+  con.query(`SELECT * FROM profile WHERE email=${mysql.escape(req.body.email)};`, (error, results, fields) => { //checks to see if email is already taken
     if (error) {
       console.log(error.stack);
       con.end();
@@ -147,10 +145,9 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
     }
 
     if (results.length == 0) {
-      let userid = uuidv4();
       let salt = bcrypt.genSaltSync(10);
       let hashedPassword = bcrypt.hashSync(req.body.password, salt);
-      con.query(`INSERT INTO users (id,username, password, email, first_name, last_name) VALUES (${mysql.escape(userid)}, ${mysql.escape(req.body.username)}, '${hashedPassword}', ${mysql.escape(req.body.email)} , ${mysql.escape(req.body.firstName)}, ${mysql.escape(req.body.lastName)});`, (error, results, fields) => {
+      con.query(`INSERT INTO profile (email, password, name) VALUES (${mysql.escape(req.body.email)}, '${hashedPassword}', ${mysql.escape(req.body.name)});`, (error, results, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
@@ -173,7 +170,7 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
     }
     else {
       con.end();
-      req.flash('error', 'Username is already taken');
+      req.flash('error', 'Email is already taken');
       return res.redirect('/register');
     }
   });
@@ -195,14 +192,14 @@ router.get('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (
 router.post('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   req.flash('success', "If this email exists in our system, you will get a password reset email.");
   res.redirect('/login');
-  let userEmail = req.body.username;
+  let userEmail = req.body.email;
   let formErrors = req.validationErrors();
   if (formErrors) {
       req.flash('error', formErrors[0].msg);
       return res.redirect('/forgot-password');
   }
   let con = mysql.createConnection(dbInfo);
-  con.query(`SELECT * FROM users WHERE username=${mysql.escape(userEmail)} OR email=${mysql.escape(userEmail)};`, (error, results, fields) => {
+  con.query(`SELECT * FROM profile WHERE email=${mysql.escape(userEmail)};`, (error, results, fields) => {
     if (error) {
       console.log(error.stack);
       con.end();
@@ -210,14 +207,14 @@ router.post('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, 
     }
     if (results.length === 1) {
       let randomID = uuidv4(); // get random new ID. this will be added to the password reset URL we email them so it's fulyl randomized and can't be bruteforced.
-      con.query(`UPDATE users SET forgot_password='${randomID}' WHERE username=${mysql.escape(userEmail)} OR email=${mysql.escape(userEmail)};`, (error, resultsUpdate, fields) => {
+      con.query(`UPDATE profile SET forgot_password='${randomID}' WHERE email=${mysql.escape(userEmail)};`, (error, resultsUpdate, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
           return;
         }
           let passwordResetURL = `http://67.207.85.51/reset-password/${randomID}`;
-          let emailContent = `<p>Hi ${results[0].first_name} ${results[0].last_name},<br><br>Please use the following link to reset your password: ${passwordResetURL}</p><p><br>Best,</p><p>Frindr Team</p>`;
+          let emailContent = `<p>Hi ${results[0].name},<br><br>Please use the following link to reset your password: ${passwordResetURL}</p><p><br>Best,</p><p>Frindr Team</p>`;
           const mailOptions = {
             from: 'FrindrPurdue@gmail.com',
             to: results[0].email,
@@ -386,6 +383,10 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
       }
     }
   });
+});
+
+router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+
 });
 
 
