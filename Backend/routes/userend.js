@@ -15,6 +15,7 @@ var request = require("request");
 const mysql = require('mysql');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
+const geolib = require('geolib');
 import {
   postProfile,
   patchBio,
@@ -24,6 +25,7 @@ import {
   getProfile,
   deleteProfile,
 } from "../functions/profile";
+
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
@@ -66,12 +68,20 @@ router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) 
   });
 });
 
+router.get('/location', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
+  return res.render('platform/locationTestPage.hbs', {
+    error: req.flash('error'),
+    success: req.flash('success')
+  });
+});
+
 router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.authenticate('local', { successRedirect: '/dashboard', failureRedirect: '/login', failureFlash: true }), (req, res) => {
   res.redirect('/dashboard');
 });
 
 passport.use(new LocalStrategy({ passReqToCallback: true, },
   function (req, username, password, done) {
+    console.log(req.body)
     let con = mysql.createConnection(dbInfo);
     con.query(`SELECT * FROM users WHERE username=${mysql.escape(username)} OR email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
@@ -88,9 +98,19 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
             identifier: results[0].id,
             username: results[0].username,
             firstName: results[0].first_name,
-            lastName: results[0].last_name,
+            lastName: results[0].last_name,  
           };
-          con.end();
+            
+            
+          con.query(`UPDATE users SET latitude=${mysql.escape(req.body.latitude)}, longitude=${mysql.escape(req.body.longitude)} WHERE username=${mysql.escape(user.username)};`, (error, results, fields) => {
+              //need some error checking here
+              
+              con.end();
+              
+              
+          });  
+               
+          //con.end();
           return done(null, user);
         } else {
           con.end();
@@ -99,6 +119,10 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
 
       }
     });
+        
+    
+    
+    
 
   }));
 
@@ -191,6 +215,7 @@ router.get('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (
     success: req.flash('success')
   });
 });
+
 
 router.post('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   req.flash('success', "If this email exists in our system, you will get a password reset email.");
@@ -320,6 +345,13 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
   return res.render('platform/dashboard.hbs');
 });
 
+
+router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
+  var distance = geolib.getDistance({latitude: req.params.lat1, longitude: req.params.lng1 }, {latitude: req.params.lat2, longitude: req.params.lng2});
+ 
+  res.send('Distance from ' + req.params.lat1 + ',' + req.params.lng1 + ' to ' + req.params.lat2 + ',' + req.params.lng2 + ' is ' + distance + ' km');
+});
+
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   let con = mysql.createConnection(dbInfo);
   con.query( `SELECT * FROM users WHERE username=${mysql.escape(req.user.username)}`, (error, results, fields) => {
@@ -387,6 +419,7 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
     }
   });
 });
+
 
 
 module.exports = router;

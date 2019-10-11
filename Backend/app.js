@@ -14,6 +14,7 @@ var request = require("request");
 const https = require('https');
 const fs = require('fs');
 
+
 const app = express();
 
 // Start HTTP Server
@@ -62,6 +63,8 @@ app.use(passport.session());
 
 // Use routes
 app.use('/', userend);
+
+//AIzaSyDsppSm82CGZMZQTuEuNFPK5hikt9aquPs
 
 // Static folder
 app.use(express.static(path.join(__dirname, '/public')));
