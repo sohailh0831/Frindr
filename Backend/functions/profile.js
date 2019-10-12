@@ -17,43 +17,43 @@ let dbInfo = {
   multipleStatements: true
 };
 
-export const postProfile = async (req, res) => {
+export const postProfile = async (req) => {
   try {
     if (!req.body.email) {
-      throw new Error("At least need email")
+      return {error: true, message: "Email is needed."};
     }
-    let check = await getProfileStore(req);
+    let check = await getProfileStore(req, req.body.email);
     if (check.found === false) {
       let results = await postProfileStore(req);
       if (results.error == false) {
-        return res.status('201').send(results);
+        return {error: false, message: results};
       }
       else {
-        return res.status('400').send(results);
+        return {error: true, message: results};
       }
     }
     else {
-      return res.status('400').send({ error: true, message: "Profile with that email already exists" });
+      return {error: true, message: "This profile already exists."};
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return {error: true, message: "Error."};
   }
 }
 
-export const getProfile = async (req, res) => {
+export const getProfile = async (req) => {
   try {
-    if (!req.body.email) {
-      throw new Error("Need email")
+    if (!req.user.email) {
+      throw new Error("Need email");
     }
-    let results = await getProfileStore(req);
+    let results = await getProfileStore(req, req.user.email);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return {error: false, message: results};
     }
     else {
-      return res.status('404').send(results);
+      return {error: true, message: "Profile not found."};
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return error;
   }
 }
 
@@ -125,20 +125,17 @@ export const patchCharacteristics = async (req, res) => {
   }
 }
 
-export const deleteProfile = async (req, res) => {
+export const deleteProfile = async (req) => {
   try {
-    if (!req.body.email) {
-      throw new Error("Need email")
-    }
-    let results = await deleteProfileStore(req);
+    let results = await deleteProfileStore(req, req.user.email);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return {error: false, message: results};
     }
     else {
-      return res.status('400').send(results);
+      return {error: true, message: results};
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return error;
   }
 }
 
@@ -161,7 +158,7 @@ function postProfileStore(req) {
     try {
       let res;
       let con = mysql.createConnection(dbInfo);
-      res = con.query(`INSERT INTO profile (email, name, bio, interests, location, characteristics) VALUES (${mysql.escape(email)}, ${mysql.escape(name)}, ${mysql.escape(bio)}, '${interests}', '${location}', '${characteristics}');`, (error, results, fields) => {
+      res = con.query(`INSERT INTO profile (email, password, name, bio, interests, location, characteristics) VALUES (${mysql.escape(email)}, ${mysql.escape(req.body.password)}, ${mysql.escape(name)}, ${mysql.escape(bio)}, '${interests}', '${location}', '${characteristics}');`, (error, results, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
@@ -170,14 +167,11 @@ function postProfileStore(req) {
         if (results) {
           console.log(`${email} profile registered.`);
           con.end();
-          req.flash('success', 'Successfully created profile.');
-          res = results;
           resolve({ error: false, message: results });
         }
         else {
           con.end();
-          req.flash('error', 'Something Went Wrong. Try Again later.');
-          resolve({ error: true, message: 'something is wrong' })
+          resolve({ error: true, message: 'Something Went Wrong. Try Again later.' })
         }
       });
     } catch (error) {
@@ -186,8 +180,7 @@ function postProfileStore(req) {
   });
 }
 
-function getProfileStore(req) {
-  let email = req.body.email;
+function getProfileStore(req, email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -199,13 +192,11 @@ function getProfileStore(req) {
         }
         if (results.length == 0) {
           con.end();
-          req.flash('error', 'Profile not found');
-          resolve({ error: true, message: "No profile found", found: false })
+          resolve({ error: true, message: "This profile does not exist.", found: false })
         }
         else if (results) {
           con.end();
-          req.flash('success', 'Profile found');
-          resolve({ error: false, message: results, found: true })
+          resolve({ error: false, message: results[0], found: true })
 
         }
       });
@@ -299,8 +290,7 @@ function patchCharacteristicsStore(req) {
   });
 }
 
-function deleteProfileStore(req) {
-  let email = req.body.email;
+function deleteProfileStore(req, email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);

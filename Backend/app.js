@@ -78,6 +78,3 @@ httpsServer.listen(443, () => {
 	console.log(`Got SSL up in this bish`);
 });
 
-// const api = require('./routes/userend')(express);
-// app.use('/', api);
-
