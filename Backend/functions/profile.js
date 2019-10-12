@@ -47,6 +47,11 @@ export const getProfile = async (req) => {
     }
     let results = await getProfileStore(req, req.user.email);
     if (results.error == false) {
+      console.log(results.message.characteristics)
+      results.message.interests = JSON.parse(results.message.interests);
+      results.message.characteristics = JSON.parse(results.message.characteristics);
+      results.message.location = JSON.parse(results.message.location);
+      console.log(results.message)
       return {error: false, message: results};
     }
     else {
@@ -57,9 +62,9 @@ export const getProfile = async (req) => {
   }
 }
 
-export const patchName = async (req, res) => {
+export const patchName = async (req) => {
   try {
-    if (!req.body.email || !req.body.name) {
+    if (!req.user.email || !req.body.name) {
       throw new Error("Need email and name")
     }
     let results = await patchNameStore(req);
@@ -74,9 +79,9 @@ export const patchName = async (req, res) => {
   }
 }
 
-export const patchBio = async (req, res) => {
+export const patchBio = async (req) => {
   try {
-    if (!req.body.email || !req.body.bio) {
+    if (!req.user.email || !req.body.bio) {
       throw new Error("Need email and bio")
     }
     let results = await patchBioStore(req);
@@ -91,37 +96,37 @@ export const patchBio = async (req, res) => {
   }
 }
 
-export const patchInterests = async (req, res) => {
+export const patchInterests = async (req) => {
   try {
-    if (!req.body.email || !req.body.interests) {
+    if (!req.user.email || !req.body.param) {
       throw new Error("Need email and interests")
     }
     let results = await patchInterestsStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return {results: JSON.parse(results.interests)};
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
-export const patchCharacteristics = async (req, res) => {
+export const patchCharacteristics = async (req) => {
   try {
-    if (!req.body.email || !req.body.characteristics) {
+    if (!req.user.email || !req.body) {
       throw new Error("Need email and characteristics")
     }
     let results = await patchCharacteristicsStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return results;
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
@@ -207,7 +212,7 @@ function getProfileStore(req, email) {
 }
 
 function patchNameStore(req) {
-  let email = req.body.email;
+  let email = req.user.email;
   let name = req.body.name;
   return new Promise(resolve => {
     try {
@@ -228,7 +233,7 @@ function patchNameStore(req) {
 }
 
 function patchBioStore(req) {
-  let email = req.body.email;
+  let email = req.user.email;
   let bio = req.body.bio;
   return new Promise(resolve => {
     try {
@@ -249,8 +254,9 @@ function patchBioStore(req) {
 }
 
 function patchInterestsStore(req) {
-  let email = req.body.email;
-  let interests = JSON.stringify(req.body.interests);
+  let email = req.user.email;
+  //let interests = req.body.param;
+  let interests = JSON.stringify(req.body.param);
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -270,8 +276,11 @@ function patchInterestsStore(req) {
 }
 
 function patchCharacteristicsStore(req) {
-  let email = req.body.email;
-  let characteristics = JSON.stringify(req.body.characteristics);
+  let email = req.user.email;
+  let characteristics = JSON.stringify(req.body);
+  //console.log(characteristics);
+  //let characteristics = req.body;
+
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
