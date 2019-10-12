@@ -19,7 +19,7 @@ let dbInfo = {
   multipleStatements: true
 };
 
-export const getMatches = async (req, res) => {
+export const getMatches = async (req) => {
     try {
         if (!req.body.email) {
           throw new Error("Need email")
@@ -34,13 +34,13 @@ export const getMatches = async (req, res) => {
         }
         let results = await getProfileIntern(req);
         if (results.error == true) {
-          return res.status('400').send(results);
+          return results;
         }
         const userProfile = results.message[0];
         
         results = await getProfilesStore(req, userProfile.location);
         if (results.error == true) {
-            return res.status('400').send(results);
+            return results;
           }
         console.log(results);
         let list = [];
@@ -60,36 +60,73 @@ export const getMatches = async (req, res) => {
             list.push(current);
           }
         }
-        return res.status('200').send(list);
+        return list;
       } catch (error) {
-        return res.status('400').send({ error: true, message: error.stack });
+        return { error: true, message: error.stack };
       }
+};
+export const patchBlock = async (req) => {
+  try {
+    if (!req.body.email || typeof req.body.block !== undefined) {
+      throw new Error("Need email and block boolean")
+    }
+    let results = await patchNameStore(req);
+    if (results.error == false) {
+      return results;
+    }
+    else {
+      return results;
+    }
+  } catch (error) {
+    return { error: true, message: error.stack };
+  }
 };
 
 function getProfilesStore(req, location){
-    return new Promise(resolve => {
-        try {
-          let con = mysql.createConnection(dbInfo);
-          con.query(`SELECT * FROM profile where location = ${location};`, (error, results, fields) => {
-            if (error) {
-              console.log(error.stack);
-              con.end();
-              resolve({ error: true, message: error, found: false })
-            }
-            if (results.length == 0) {
-              con.end();
-              req.flash('error', 'Profiles not found');
-              resolve({ error: true, message: "No profile found", found: false })
-            }
-            else if (results) {
-              con.end();
-              req.flash('success', 'Profile found');
-              resolve({ error: false, message: results, found: true })
-    
-            }
-          });
-        } catch (error) {
+  return new Promise(resolve => {
+      try {
+        let con = mysql.createConnection(dbInfo);
+        con.query(`SELECT * FROM profile where location = ${location};`, (error, results, fields) => {
+          if (error) {
+            console.log(error.stack);
+            con.end();
+            resolve({ error: true, message: error, found: false })
+          }
+          if (results.length == 0) {
+            con.end();
+            req.flash('error', 'Profiles not found');
+            resolve({ error: true, message: "No profile found", found: false })
+          }
+          else if (results) {
+            con.end();
+            req.flash('success', 'Profile found');
+            resolve({ error: false, message: results, found: true })
+  
+          }
+        });
+      } catch (error) {
+        resolve({ error: true, message: error })
+      }
+    });
+}
+
+function patchBlockStore(req) {
+  let email = req.body.email;
+  let block = req.body.block;
+  return new Promise(resolve => {
+    try {
+      let con = mysql.createConnection(dbInfo);
+      con.query(`UPDATE profile SET block=${mysql.escape(block)} WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+        if (error) {
+          console.log(error.stack);
+          con.end();
           resolve({ error: true, message: error })
         }
+        con.end();
+        resolve({ error: false, message: resultsUpdate })
       });
+    } catch (error) {
+      resolve({ error: true, message: error })
+    }
+  });
 }
