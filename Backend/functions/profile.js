@@ -62,9 +62,9 @@ export const getProfile = async (req) => {
   }
 }
 
-export const patchName = async (req, res) => {
+export const patchName = async (req) => {
   try {
-    if (!req.body.email || !req.body.name) {
+    if (!req.user.email || !req.body.name) {
       throw new Error("Need email and name")
     }
     let results = await patchNameStore(req);
@@ -79,9 +79,9 @@ export const patchName = async (req, res) => {
   }
 }
 
-export const patchBio = async (req, res) => {
+export const patchBio = async (req) => {
   try {
-    if (!req.body.email || !req.body.bio) {
+    if (!req.user.email || !req.body.bio) {
       throw new Error("Need email and bio")
     }
     let results = await patchBioStore(req);
@@ -96,9 +96,9 @@ export const patchBio = async (req, res) => {
   }
 }
 
-export const patchInterests = async (req, res) => {
+export const patchInterests = async (req) => {
   try {
-    if (!req.body.email || !req.body.interests) {
+    if (!req.user.email || !req.body.param) {
       throw new Error("Need email and interests")
     }
     let results = await patchInterestsStore(req);
@@ -113,9 +113,9 @@ export const patchInterests = async (req, res) => {
   }
 }
 
-export const patchCharacteristics = async (req, res) => {
+export const patchCharacteristics = async (req) => {
   try {
-    if (!req.body.email || !req.body.characteristics) {
+    if (!req.user.email || !req.body) {
       throw new Error("Need email and characteristics")
     }
     let results = await patchCharacteristicsStore(req);
@@ -212,7 +212,7 @@ function getProfileStore(req, email) {
 }
 
 function patchNameStore(req) {
-  let email = req.body.email;
+  let email = req.user.email;
   let name = req.body.name;
   return new Promise(resolve => {
     try {
@@ -233,7 +233,7 @@ function patchNameStore(req) {
 }
 
 function patchBioStore(req) {
-  let email = req.body.email;
+  let email = req.user.email;
   let bio = req.body.bio;
   return new Promise(resolve => {
     try {
@@ -254,8 +254,9 @@ function patchBioStore(req) {
 }
 
 function patchInterestsStore(req) {
-  let email = req.body.email;
-  let interests = JSON.stringify(req.body.interests);
+  let email = req.user.email;
+  //let interests = req.body.param;
+  let interests = JSON.stringify(req.body.param);
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -275,9 +276,10 @@ function patchInterestsStore(req) {
 }
 
 function patchCharacteristicsStore(req) {
-  let email = req.body.email;
-  let characteristics = JSON.stringify(req.body.param);
-  console.log(characteristics);
+  let email = req.user.email;
+  let characteristics = JSON.stringify(req.body);
+  //console.log(characteristics);
+  //let characteristics = req.body;
 
   return new Promise(resolve => {
     try {

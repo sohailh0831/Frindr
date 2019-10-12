@@ -396,7 +396,7 @@ router.post(`/profile/delete-profile`, AuthenticationFunctions.ensureAuthenticat
 
 router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   console.log(req.body.param);
-  patchInterests(req);
+  console.log(patchInterests(req));
   res.send();
 });
 
