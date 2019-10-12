@@ -81,7 +81,6 @@ router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.a
 
 passport.use(new LocalStrategy({ passReqToCallback: true, },
   function (req, username, password, done) {
-    console.log(req.body)
     let con = mysql.createConnection(dbInfo);
     con.query(`SELECT * FROM profile WHERE email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
@@ -316,10 +315,22 @@ router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   getProfile(req).then(result => {
     if (result.error == false) {
+      console.log('here' + result.message.message.interests);
+      console.log(result.message.message.characteristics['height']);
       return res.render('platform/profile.hbs', {
         user: result.message.message,
         error: req.flash('error'),
         success: req.flash('success'),
+        user_characteristics: result.message.message.characteristics,
+        height: result.message.message.characteristics['height'],
+        exercise: result.message.message.characteristics['exercise'],
+        education: result.message.message.characteristics['education'],
+        drinking: result.message.message.characteristics['drinking'],
+        smoking: result.message.message.characteristics['smoking'],
+        pets: result.message.message.characteristics['pets'],
+        religious: result.message.message.characteristics['religious'],
+        user_interests: result.message.message.interests,
+        
       });
     } else {
       req.flash('error', 'Error.');
@@ -332,13 +343,11 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
 });
 
 router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  console.log(req.body);
   req.checkBody('currentPassword', 'Current Password field is required.').notEmpty();
   req.checkBody('newPassword2', 'New password does not match confirmation password field.').equals(req.body.newPassword);
   let formErrors = req.validationErrors();
   if (formErrors) {
       req.flash('error', formErrors[0].msg);
-      console.log('true');
       return res.redirect('/profile');
 	}
   if (req.body.newPassword.length < 3) {
@@ -348,7 +357,6 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
     req.flash('error', 'Password cannot contain spaces.');
     return res.redirect('/profile');
   }
-  console.log('route');
   let con = mysql.createConnection(dbInfo);
   con.query(`SELECT * FROM profile WHERE email=${mysql.escape(req.user.email)};`, (error, results, fields) => {
     if (error) {
@@ -395,15 +403,23 @@ router.post(`/profile/delete-profile`, AuthenticationFunctions.ensureAuthenticat
 });
 
 router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  console.log(req.body.param);
-  console.log(patchInterests(req));
-  res.send();
+  patchInterests(req).then(result => {
+    req.flash('success', 'Updated interests.');
+    return res.redirect('/profile');
+  }).catch(error => {
+    req.flash('error', 'Error.');
+    return res.redirect('/profile');
+  });
 });
 
 router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  console.log(req.body);
-  patchCharacteristics(req);
-  res.send();
+  patchCharacteristics(req).then(result => {
+    req.flash('success', 'Updated characteristics.');
+    return res.redirect('/profile');
+  }).catch(error => {
+    req.flash('error', 'Error.');
+    return res.redirect('/profile');
+  });
 });
 
 
