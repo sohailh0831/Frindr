@@ -396,11 +396,14 @@ router.post(`/profile/delete-profile`, AuthenticationFunctions.ensureAuthenticat
 
 router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   console.log(req.body.param);
+  patchInterests(req);
   res.send();
 });
 
 router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   console.log(req.body);
+  patchInterests(req);
+  patchCharacteristics(req);
   res.send();
 });
 

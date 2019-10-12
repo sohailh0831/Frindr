@@ -47,6 +47,11 @@ export const getProfile = async (req) => {
     }
     let results = await getProfileStore(req, req.user.email);
     if (results.error == false) {
+      console.log(results.message.characteristics)
+      results.message.interests = JSON.parse(results.message.interests);
+      results.message.characteristics = JSON.parse(results.message.characteristics);
+      results.message.location = JSON.parse(results.message.location);
+      console.log(results.message)
       return {error: false, message: results};
     }
     else {
@@ -98,13 +103,13 @@ export const patchInterests = async (req, res) => {
     }
     let results = await patchInterestsStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return {results: JSON.parse(results.interests)};
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
@@ -115,13 +120,13 @@ export const patchCharacteristics = async (req, res) => {
     }
     let results = await patchCharacteristicsStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return results;
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
@@ -271,7 +276,9 @@ function patchInterestsStore(req) {
 
 function patchCharacteristicsStore(req) {
   let email = req.body.email;
-  let characteristics = JSON.stringify(req.body.characteristics);
+  let characteristics = JSON.stringify(req.body.param);
+  console.log(characteristics);
+
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
