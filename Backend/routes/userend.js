@@ -402,7 +402,6 @@ router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthentic
 
 router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   console.log(req.body);
-  patchInterests(req);
   patchCharacteristics(req);
   res.send();
 });
