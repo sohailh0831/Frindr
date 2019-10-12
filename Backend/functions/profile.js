@@ -47,11 +47,9 @@ export const getProfile = async (req) => {
     }
     let results = await getProfileStore(req, req.user.email);
     if (results.error == false) {
-      console.log(results.message.characteristics)
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
       results.message.location = JSON.parse(results.message.location);
-      console.log(results.message)
       return {error: false, message: results};
     }
     else {
