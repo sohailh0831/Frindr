@@ -83,7 +83,7 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
   function (req, username, password, done) {
     console.log(req.body)
     let con = mysql.createConnection(dbInfo);
-    con.query(`SELECT * FROM users WHERE username=${mysql.escape(username)} OR email=${mysql.escape(username)};`, (error, results, fields) => {
+    con.query(`SELECT * FROM profile WHERE email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
         console.log(error.stack);
         con.end();
@@ -95,34 +95,24 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
       } else {
         if (bcrypt.compareSync(password, results[0].password)) {
           let user = {
-            identifier: results[0].id,
-            username: results[0].username,
-            firstName: results[0].first_name,
-            lastName: results[0].last_name,  
+            email: results[0].email,
+            name: results[0].name,
           };
-            
-            
-          con.query(`UPDATE users SET latitude=${mysql.escape(req.body.latitude)}, longitude=${mysql.escape(req.body.longitude)} WHERE username=${mysql.escape(user.username)};`, (error, results, fields) => {
-              //need some error checking here
+          // con.query(`UPDATE users SET latitude=${mysql.escape(req.body.latitude)}, longitude=${mysql.escape(req.body.longitude)} WHERE username=${mysql.escape(user.username)};`, (error, results, fields) => {
+          //     //need some error checking here
               
-              con.end();
+          //     con.end();
               
               
-          });  
-               
-          //con.end();
+          // });  
+          con.end();
           return done(null, user);
         } else {
           con.end();
           return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
         }
-
       }
     });
-        
-    
-    
-    
 
   }));
 
@@ -142,10 +132,8 @@ router.get('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, re
 });
 
 router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
-  req.checkBody('firstName', 'First Name field is required.').notEmpty();
-  req.checkBody('lastName', 'Last Name field is required.').notEmpty();
+  req.checkBody('name', 'Name field is required.').notEmpty();
   req.checkBody('email', 'Email field is required.').notEmpty();
-  req.checkBody('username', 'Username field is required.').notEmpty();
   req.checkBody('password', 'Password field is required.').notEmpty();
   req.checkBody('password2', 'Confirm password field is required.').notEmpty();
   req.checkBody('password2', 'Password does not match confirmation password field.').equals(req.body.password);
@@ -161,43 +149,16 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
     req.flash('error', formErrors[0].msg);
     return res.redirect('/register');
   }
-
-  let con = mysql.createConnection(dbInfo);
-  con.query(`SELECT * FROM users WHERE username=${mysql.escape(req.body.username)};`, (error, results, fields) => { //checks to see if username is already taken
-    if (error) {
-      console.log(error.stack);
-      con.end();
-      return res.send();
-    }
-
-    if (results.length == 0) {
-      let userid = uuidv4();
-      let salt = bcrypt.genSaltSync(10);
-      let hashedPassword = bcrypt.hashSync(req.body.password, salt);
-      con.query(`INSERT INTO users (id,username, password, email, first_name, last_name) VALUES (${mysql.escape(userid)}, ${mysql.escape(req.body.username)}, '${hashedPassword}', ${mysql.escape(req.body.email)} , ${mysql.escape(req.body.firstName)}, ${mysql.escape(req.body.lastName)});`, (error, results, fields) => {
-        if (error) {
-          console.log(error.stack);
-          con.end();
-          return;
-        }
-        if (results) {
-          console.log(`${req.body.email} successfully registered.`);
-          con.end();
-          req.flash('success', 'Successfully registered. You may now login.');
-          return res.redirect('/login');
-        }
-        else {
-          con.end();
-          req.flash('error', 'Something Went Wrong. Try Registering Again.');
-          return res.redirect('/register');
-        }
-
-
-      });
-    }
-    else {
-      con.end();
-      req.flash('error', 'Username is already taken');
+  let salt = bcrypt.genSaltSync(10);
+  let hashedPassword = bcrypt.hashSync(req.body.password, salt);
+  req.body.password = hashedPassword;
+  postProfile(req).then(result => {
+    console.log(result);
+    if (result.error == false) {
+      req.flash('success', "Successfully registered. You may now login.");
+      return res.redirect('/login');
+    } else {
+      req.flash('error', result.message);
       return res.redirect('/register');
     }
   });
@@ -220,14 +181,14 @@ router.get('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (
 router.post('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   req.flash('success', "If this email exists in our system, you will get a password reset email.");
   res.redirect('/login');
-  let userEmail = req.body.username;
+  let userEmail = req.body.email;
   let formErrors = req.validationErrors();
   if (formErrors) {
       req.flash('error', formErrors[0].msg);
       return res.redirect('/forgot-password');
   }
   let con = mysql.createConnection(dbInfo);
-  con.query(`SELECT * FROM users WHERE username=${mysql.escape(userEmail)} OR email=${mysql.escape(userEmail)};`, (error, results, fields) => {
+  con.query(`SELECT * FROM profile WHERE email=${mysql.escape(userEmail)};`, (error, results, fields) => {
     if (error) {
       console.log(error.stack);
       con.end();
@@ -235,14 +196,14 @@ router.post('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, 
     }
     if (results.length === 1) {
       let randomID = uuidv4(); // get random new ID. this will be added to the password reset URL we email them so it's fulyl randomized and can't be bruteforced.
-      con.query(`UPDATE users SET forgot_password='${randomID}' WHERE username=${mysql.escape(userEmail)} OR email=${mysql.escape(userEmail)};`, (error, resultsUpdate, fields) => {
+      con.query(`UPDATE profile SET forgot_password='${randomID}' WHERE email=${mysql.escape(userEmail)};`, (error, resultsUpdate, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
           return;
         }
           let passwordResetURL = `http://67.207.85.51/reset-password/${randomID}`;
-          let emailContent = `<p>Hi ${results[0].first_name} ${results[0].last_name},<br><br>Please use the following link to reset your password: ${passwordResetURL}</p><p><br>Best,</p><p>Frindr Team</p>`;
+          let emailContent = `<p>Hi ${results[0].name},<br><br>Please use the following link to reset your password: ${passwordResetURL}</p><p><br>Best,</p><p>Frindr Team</p>`;
           const mailOptions = {
             from: 'FrindrPurdue@gmail.com',
             to: results[0].email,
@@ -353,34 +314,31 @@ router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
 });
 
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  let con = mysql.createConnection(dbInfo);
-  con.query( `SELECT * FROM users WHERE username=${mysql.escape(req.user.username)}`, (error, results, fields) => {
-    if (error) {
-      console.log(error.stack);
-      con.end();
-      return;
-    }
-    if (results.length === 1) {
-      con.end();
+  getProfile(req).then(result => {
+    if (result.error == false) {
       return res.render('platform/profile.hbs', {
+        user: result.message.message,
         error: req.flash('error'),
         success: req.flash('success'),
-        user: results[0],
       });
     } else {
-      req.flash('error', 'Error');
-      con.end();
+      req.flash('error', 'Error.');
       return res.redirect('/dashboard');
     }
+  }).catch(error => {
+    req.flash('error', "Error.");
+    return res.redirect('/dashboard');
   });
 });
 
 router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  console.log(req.body);
   req.checkBody('currentPassword', 'Current Password field is required.').notEmpty();
   req.checkBody('newPassword2', 'New password does not match confirmation password field.').equals(req.body.newPassword);
   let formErrors = req.validationErrors();
   if (formErrors) {
-	    req.flash('error', formErrors[0].msg);
+      req.flash('error', formErrors[0].msg);
+      console.log('true');
       return res.redirect('/profile');
 	}
   if (req.body.newPassword.length < 3) {
@@ -390,8 +348,9 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
     req.flash('error', 'Password cannot contain spaces.');
     return res.redirect('/profile');
   }
+  console.log('route');
   let con = mysql.createConnection(dbInfo);
-  con.query(`SELECT * FROM users WHERE id=${mysql.escape(req.user.identifier)};`, (error, results, fields) => {
+  con.query(`SELECT * FROM profile WHERE email=${mysql.escape(req.user.email)};`, (error, results, fields) => {
     if (error) {
       console.log(error.stack);
       con.end();
@@ -401,7 +360,7 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
       if (bcrypt.compareSync(req.body.currentPassword, results[0].password)) {
           let salt = bcrypt.genSaltSync(10);
           let hashedPassword = bcrypt.hashSync(req.body.newPassword, salt);
-          con.query(`UPDATE users SET password=${mysql.escape(hashedPassword)} WHERE id=${mysql.escape(req.user.identifier)};`, (error, results, fields) => {
+          con.query(`UPDATE profile SET password=${mysql.escape(hashedPassword)} WHERE email=${mysql.escape(req.user.email)};`, (error, results, fields) => {
             if (error) {
               console.log(error.stack);
               con.end();
@@ -418,6 +377,31 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
       }
     }
   });
+});
+
+router.post(`/profile/delete-profile`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  deleteProfile(req).then(result => {
+    if (result.error == false) {
+      req.logout();
+      req.session.destroy();
+      return res.redirect('/login');
+    } else {
+      req.flash('error', 'Error deleting profile.');
+      return res.redirect('/profile');
+    }
+  }).catch(error => {
+
+  });
+});
+
+router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  console.log(req.body.param);
+  res.send();
+});
+
+router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  console.log(req.body);
+  res.send();
 });
 
 

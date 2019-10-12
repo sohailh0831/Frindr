@@ -44,21 +44,18 @@
 									<input type="email" disabled="" class="form-control m-input" value="{{user.email}}">
 								</div>
 								<div class="form-group m-form__group">
-									<label>Username:</label>
-									<input type="text" class="form-control m-input" value="{{user.username}}" disabled="">
-								</div>
-								<div class="form-group m-form__group">
 									<label>First Name:</label>
-									<input type="text" class="form-control m-input" value="{{user.first_name}}" disabled="">
-								</div>
-								<div class="form-group m-form__group">
-									<label>Last Name:</label>
-									<input type="text" class="form-control m-input" value="{{user.last_name}}" disabled="">
+									<input type="text" class="form-control m-input" value="{{user.name}}" disabled="">
 								</div>
 								<div class="form-group m-form__group">
 									<label>Location:</label>
 									<input type="text" class="form-control m-input" value="{{user.latitude}}:{{user.longitude}}" disabled="">
 								</div>
+							</div>
+						</div>
+						<div class="m-portlet__foot m-portlet__foot--fit">
+							<div class="m-form__actions m-form__actions">
+                        		<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-profile-modal">Delete Frindr Profile</button>
 							</div>
 						</div>
 					</form>
@@ -116,10 +113,217 @@
 				<!--end::Portlet-->
 			</div>
 
+			<div class="col-lg-4">
+
+				<!--begin::Portlet-->
+				<div class="m-portlet">
+					<div class="m-portlet__head">
+						<div class="m-portlet__head-caption">
+							<div class="m-portlet__head-title">
+								<span class="m-portlet__head-icon m--hide">
+									<i class="la la-gear"></i>
+								</span>
+								<h3 class="m-portlet__head-text">
+									Interests
+								</h3>
+							</div>
+						</div>
+					</div>
+
+					<!--begin::Form-->
+					<form class="m-form" action="/profile/update-interests" method="post">
+						<div class="m-portlet__body">
+							<div class="m-form__section m-form__section--first">
+								<div class="form-group m-form__group row">
+										<label class="col-form-label col-lg-3 col-sm-12">Select Interests:</label>
+										<div class="col-lg-12">
+											<select class="form-control m-select2" id="m_select2_3" name="param" multiple="multiple">
+												<optgroup label="Interests">
+													<option value="reading">Reading</option>
+													<option value="traveling">Traveling</option>
+													<option value="fishing">Fishing</option>
+													<option value="crafts">Crafts</option>
+													<option value="netflix">Netflix</option>
+													<option value="gaming">Gaming</option>
+													<option value="sports">Sports</option>
+													<option value="music">Music</option>
+												</optgroup>
+											</select>
+										</div>
+									</div>
+							</div>
+						</div>
+						<div class="m-portlet__foot m-portlet__foot--fit">
+							<div class="m-form__actions m-form__actions">
+								<button type="submit" class="btn btn-primary">Submit</button>
+							</div>
+						</div>
+					</form>
+					<!--end::Form-->
+				</div>
+
+				<!--end::Portlet-->
+			</div>
+
+			<div class="col-lg-4">
+
+				<!--begin::Portlet-->
+				<div class="m-portlet">
+					<div class="m-portlet__head">
+						<div class="m-portlet__head-caption">
+							<div class="m-portlet__head-title">
+								<span class="m-portlet__head-icon m--hide">
+									<i class="la la-gear"></i>
+								</span>
+								<h3 class="m-portlet__head-text">
+									Characteristics
+								</h3>
+							</div>
+						</div>
+					</div>
+
+					<!--begin::Form-->
+					<form class="m-form m-form--fit m-form--label-align-right" action="/profile/update-characteristics" method="post">
+										<div class="m-portlet__body">
+											<div class="form-group m-form__group">
+												<label for="exampleSelect1">Height</label>
+												<select class="form-control m-input m-input--solid" id="exampleSelect1" name="height">
+													<option>3'0"</option>
+													<option>3'1"</option>
+													<option>3'2"</option>
+													<option>3'3"</option>
+													<option>3'4"</option>
+													<option>3'5"</option>
+													<option>3'6"</option>
+													<option>3'7"</option>
+													<option>3'8"</option>
+													<option>3'9"</option>
+													<option>3'10"</option>
+													<option>3'11"</option>
+													<option>4'0"</option>
+													<option>4'1"</option>
+													<option>4'2"</option>
+													<option>4'3"</option>
+													<option>4'4"</option>
+													<option>4'5"</option>
+													<option>4'6"</option>
+													<option>4'7"</option>
+													<option>4'8"</option>
+													<option>4'9"</option>
+													<option>4'10"</option>
+													<option>4'11"</option>
+													<option>5'0"</option>
+													<option>5'1"</option>
+													<option>5'2"</option>
+													<option>5'3"</option>
+													<option>5'4"</option>
+													<option>5'5"</option>
+													<option>5'6"</option>
+													<option>5'7"</option>
+													<option>5'8"</option>
+													<option>5'9"</option>
+													<option>5'10"</option>
+													<option>5'11"</option>
+													<option>6'0"</option>
+													<option>6'1"</option>
+													<option>6'2"</option>
+													<option>6'3"</option>
+													<option>6'4"</option>
+													<option>6'5"</option>
+													<option>6'6"</option>
+													<option>6'7"</option>
+													<option>6'8"</option>
+													<option>6'9"</option>
+													<option>6'10"</option>
+													<option>6'11"</option>
+													<option>7'0"</option>
+												</select>
+											</div>
+											<div class="form-group m-form__group">
+												<label for="exampleSelect1">Exercise</label>
+												<select class="form-control m-input m-input--solid" id="exampleSelect1" name="exercise">
+													<option>Yes</option>
+													<option>No</option>
+												</select>
+											</div>
+											<div class="form-group m-form__group">
+												<label for="exampleSelect1">Education Level</label>
+												<select class="form-control m-input m-input--solid" id="exampleSelect1" name="education">
+													<option>High School</option>
+													<option>College</option>
+												</select>
+											</div>
+											<div class="form-group m-form__group">
+												<label for="exampleSelect1">Drinking</label>
+												<select class="form-control m-input m-input--solid" id="exampleSelect1" name="drinking">
+													<option>Yes</option>
+													<option>No</option>
+												</select>
+											</div>
+											<div class="form-group m-form__group">
+												<label for="exampleSelect1">Smoking</label>
+												<select class="form-control m-input m-input--solid" id="exampleSelect1" name="smoking">
+													<option>Yes</option>
+													<option>No</option>
+												</select>
+											</div>
+											<div class="form-group m-form__group">
+												<label for="exampleSelect1">Pets</label>
+												<select class="form-control m-input m-input--solid" id="exampleSelect1" name="pets">
+													<option>Yes</option>
+													<option>No</option>
+												</select>
+											</div>
+											<div class="form-group m-form__group">
+												<label for="exampleSelect1">Religious</label>
+												<select class="form-control m-input m-input--solid" id="exampleSelect1" name="religious">
+													<option>Yes</option>
+													<option>No</option>
+												</select>
+											</div>
+										</div>
+										<div class="m-portlet__foot m-portlet__foot--fit">
+											<div class="m-form__actions">
+												<button type="submit" class="btn btn-success">Submit</button>
+												<button type="reset" class="btn btn-secondary">Cancel</button>
+											</div>
+										</div>
+									</form>
+					<!--end::Form-->
+				</div>
+
+				<!--end::Portlet-->
+			</div>
+
 		</div>
 
 		<!--End::Main Portlet-->
 	</div>
+</div>
+
+
+
+
+<div class="modal fade" id="delete-profile-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+   <form action="/profile/delete-profile" method="post">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="exampleModalLabel">Delete your Frindr Profile</h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="modal-body">
+               <p>Please only proceed if you'd like to delete your Frindr Profile. Once deleted, all data is lost and unrecoverable.</p>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+               <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+         </div>
+      </div>
+	</form>
 </div>
 
 </form>
