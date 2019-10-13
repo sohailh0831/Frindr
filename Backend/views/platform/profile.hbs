@@ -139,8 +139,9 @@
 										<div class="col-lg-12">
 											<select class="form-control m-select2" id="m_select2_3" name="param" multiple="multiple">
 												<optgroup label="Interests">
-													{{!-- {{#each user_interests}}
-													{{#select this}} --}}
+													{{#if user_interests}}
+													{{#each user_interests}}
+													{{#select this}}
 													<option value="reading">Reading</option>
 													<option value="traveling">Traveling</option>
 													<option value="fishing">Fishing</option>
@@ -149,8 +150,18 @@
 													<option value="gaming">Gaming</option>
 													<option value="sports">Sports</option>
 													<option value="music">Music</option>
-													{{!-- {{/select}}
-													{{/each}} --}}
+													{{/select}}
+													{{/each}}
+													{{else}}
+													<option value="reading">Reading</option>
+													<option value="traveling">Traveling</option>
+													<option value="fishing">Fishing</option>
+													<option value="crafts">Crafts</option>
+													<option value="netflix">Netflix</option>
+													<option value="gaming">Gaming</option>
+													<option value="sports">Sports</option>
+													<option value="music">Music</option>
+													{{/if}}
 												</optgroup>
 											</select>
 										</div>
