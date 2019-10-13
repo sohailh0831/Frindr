@@ -67,13 +67,13 @@ export const patchName = async (req) => {
     }
     let results = await patchNameStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return results;
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
@@ -84,13 +84,13 @@ export const patchBio = async (req) => {
     }
     let results = await patchBioStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return results;
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
@@ -253,8 +253,16 @@ function patchBioStore(req) {
 
 function patchInterestsStore(req) {
   let email = req.user.email;
+  let list;
+  if( typeof req.body.param === 'string'){
+    list = req.body.param.split(' ')
+  }else{
+    list = req.body.param;
+  }
   //let interests = req.body.param;
-  let interests = JSON.stringify(req.body.param);
+  console.log(list)
+  let interests = JSON.stringify(list);
+  console.log(interests);
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
