@@ -315,8 +315,6 @@ router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   getProfile(req).then(result => {
     if (result.error == false) {
-      console.log('here' + result.message.message.interests);
-      console.log(result.message.message.characteristics['height']);
       return res.render('platform/profile.hbs', {
         user: result.message.message,
         error: req.flash('error'),
@@ -330,7 +328,6 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         pets: result.message.message.characteristics['pets'],
         religious: result.message.message.characteristics['religious'],
         user_interests: result.message.message.interests,
-        
       });
     } else {
       req.flash('error', 'Error.');

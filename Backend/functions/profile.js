@@ -96,8 +96,8 @@ export const patchBio = async (req) => {
 
 export const patchInterests = async (req) => {
   try {
-    if (!req.user.email || !req.body.param) {
-      throw new Error("Need email and interests")
+    if (!req.user.email) {
+      throw new Error("Need email")
     }
     let results = await patchInterestsStore(req);
     if (results.error == false) {
@@ -260,9 +260,8 @@ function patchInterestsStore(req) {
     list = req.body.param;
   }
   //let interests = req.body.param;
-  console.log(list)
+  if (!list) list = "";
   let interests = JSON.stringify(list);
-  console.log(interests);
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -284,8 +283,6 @@ function patchInterestsStore(req) {
 function patchCharacteristicsStore(req) {
   let email = req.user.email;
   let characteristics = JSON.stringify(req.body);
-  //console.log(characteristics);
-  //let characteristics = req.body;
 
   return new Promise(resolve => {
     try {
