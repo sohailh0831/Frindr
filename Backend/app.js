@@ -18,7 +18,7 @@ const fs = require('fs');
 const app = express();
 
 // Start HTTP Server
-const port = 7777;
+const port = 80;
 
 
 // Certificate
@@ -77,4 +77,3 @@ app.listen(port, () =>{
 // httpsServer.listen(443, () => {
 // 	console.log(`Got SSL up in this bish`);
 // });
-
