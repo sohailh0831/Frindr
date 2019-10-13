@@ -22,7 +22,7 @@ export const postProfile = async (req) => {
     if (!req.body.email) {
       return {error: true, message: "Email is needed."};
     }
-    let check = await getProfileStore(req, req.body.email);
+    let check = await getProfileStore(req.body.email);
     if (check.found === false) {
       let results = await postProfileStore(req);
       if (results.error == false) {
@@ -40,18 +40,16 @@ export const postProfile = async (req) => {
   }
 }
 
-export const getProfile = async (req) => {
+export const getProfile = async (email) => {
   try {
-    if (!req.user.email) {
+    if (!email) {
       throw new Error("Need email");
     }
-    let results = await getProfileStore(req, req.user.email);
+    let results = await getProfileStore(email);
     if (results.error == false) {
-      console.log(results.message.characteristics)
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
       results.message.location = JSON.parse(results.message.location);
-      console.log(results.message)
       return {error: false, message: results};
     }
     else {
@@ -69,13 +67,13 @@ export const patchName = async (req) => {
     }
     let results = await patchNameStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return results;
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
@@ -86,20 +84,20 @@ export const patchBio = async (req) => {
     }
     let results = await patchBioStore(req);
     if (results.error == false) {
-      return res.status('200').send(results);
+      return results;
     }
     else {
-      return res.status('400').send(results);
+      return results;
     }
   } catch (error) {
-    return res.status('400').send({ error: true, message: error.stack });
+    return { error: true, message: error.stack };
   }
 }
 
 export const patchInterests = async (req) => {
   try {
-    if (!req.user.email || !req.body.param) {
-      throw new Error("Need email and interests")
+    if (!req.user.email) {
+      throw new Error("Need email")
     }
     let results = await patchInterestsStore(req);
     if (results.error == false) {
@@ -185,7 +183,7 @@ function postProfileStore(req) {
   });
 }
 
-function getProfileStore(req, email) {
+function getProfileStore(email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -255,8 +253,15 @@ function patchBioStore(req) {
 
 function patchInterestsStore(req) {
   let email = req.user.email;
+  let list;
+  if( typeof req.body.param === 'string'){
+    list = req.body.param.split(' ')
+  }else{
+    list = req.body.param;
+  }
   //let interests = req.body.param;
-  let interests = JSON.stringify(req.body.param);
+  if (!list) list = "";
+  let interests = JSON.stringify(list);
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -278,8 +283,6 @@ function patchInterestsStore(req) {
 function patchCharacteristicsStore(req) {
   let email = req.user.email;
   let characteristics = JSON.stringify(req.body);
-  //console.log(characteristics);
-  //let characteristics = req.body;
 
   return new Promise(resolve => {
     try {
