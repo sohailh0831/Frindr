@@ -109,6 +109,9 @@ $(document).ready(function() {
 										<div>
 											<br>
 											<ul id="myList">
+												{{#each user_interests}}
+												<li>{{this}}</li>
+												{{/each}}
 											</ul>
 										</div>
 										</div>
