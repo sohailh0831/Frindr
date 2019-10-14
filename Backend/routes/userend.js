@@ -318,6 +318,7 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
         pets: user.message.message.characteristics['pets'],
         religious: user.message.message.characteristics['religious'],
         user_interests: user.message.message.interests,
+        user_pictures: user.message.message.pictures
       });
     } else {
       req.flash('error', 'Error.');
@@ -356,7 +357,6 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         pets: result.message.message.characteristics['pets'],
         religious: result.message.message.characteristics['religious'],
         user_interests: result.message.message.interests,
-        user_pictures: result.message.message.pictures
       });
     } else {
       req.flash('error', 'Error.');

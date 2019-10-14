@@ -88,7 +88,9 @@
 											<li>Smoking: {{smoking}}</li>
 											<li>Pets: {{pets}}</li>
 											<li>Religious: {{religious}}</li>
-											<li>Pictures: {{user_pictures}}</li>
+											{{#each user_pictures}}
+											<li>Pictures: {{this}}</li>
+											{{/each}}
 										</ul>
 									</div>
 									</div>
