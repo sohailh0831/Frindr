@@ -22,7 +22,7 @@ export const postProfile = async (req) => {
     if (!req.body.email) {
       return {error: true, message: "Email is needed."};
     }
-    let check = await getProfileStore(req, req.body.email);
+    let check = await getProfileStore(req.body.email);
     if (check.found === false) {
       let results = await postProfileStore(req);
       if (results.error == false) {
@@ -40,12 +40,12 @@ export const postProfile = async (req) => {
   }
 }
 
-export const getProfile = async (req) => {
+export const getProfile = async (email) => {
   try {
-    if (!req.user.email) {
+    if (!email) {
       throw new Error("Need email");
     }
-    let results = await getProfileStore(req, req.user.email);
+    let results = await getProfileStore(email);
     if (results.error == false) {
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
@@ -183,7 +183,7 @@ function postProfileStore(req) {
   });
 }
 
-function getProfileStore(req, email) {
+function getProfileStore(email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);

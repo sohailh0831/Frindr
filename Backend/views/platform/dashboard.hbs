@@ -1,3 +1,158 @@
 {{> header}}
+<div class="m-grid__item m-grid__item--fluid m-wrapper">
 
+	<div class="m-content">
+		{{#if error}}
+		<div class="alert alert-danger alert-dismissible fade show" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			</button>
+			<strong>Oh snap!</strong> {{error}}
+		</div>
+		{{/if}}
+		{{#if success}}
+		<div class="alert alert-success alert-dismissible fade show" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			</button>
+			<strong>Success!</strong> {{success}}
+		</div>
+		{{/if}}
+
+		<div class="row">
+
+			<div class="col-lg-4">
+				<!--begin::Portlet-->
+				<div class="m-portlet">
+					<div class="m-portlet__head">
+						<div class="m-portlet__head-caption">
+							<div class="m-portlet__head-title">
+								<span class="m-portlet__head-icon m--hide">
+									<i class="la la-gear"></i>
+								</span>
+								<h3 class="m-portlet__head-text">
+									Pictures
+								</h3>
+							</div>
+						</div>
+					</div>
+
+					<!--begin::Form-->
+						<div class="m-portlet__body">
+							<div class="m-form__section m-form__section--first">
+								<div class="form-group m-form__group row">
+
+										<div class="col-lg-12">
+												<img src="https://spinalcordstim.com/wp-content/uploads/sample-physician-headshot-540x555.png" alt="W3Schools.com" style="width:320px;height:329px;">
+										</div>
+									</div>
+							</div>
+						</div>
+						<div class="m-portlet__foot m-portlet__foot--fit">
+							<div class="m-form__actions m-form__actions">
+								<button type="submit" class="btn btn-primary"> Next Picture</button>
+							</div>
+						</div>
+
+					<!--end::Form-->
+				</div>
+				<!--end::Portlet-->
+			</div>
+			<div class="col-lg-4">
+				<!--begin::Portlet-->
+				<div class="m-portlet">
+					<div class="m-portlet__head">
+						<div class="m-portlet__head-caption">
+							<div class="m-portlet__head-title">
+								<span class="m-portlet__head-icon m--hide">
+									<i class="la la-gear"></i>
+								</span>
+								<h3 class="m-portlet__head-text">
+									Characteristics & Interests
+								</h3>
+							</div>
+						</div>
+					</div>
+
+					<!--begin::Form-->
+						<div class="m-portlet__body">
+							<div class="m-form__section m-form__section--first">
+								<div class="form-group m-form__group row">
+									<label> Characteristics:</label>
+									<div>
+										<br>
+										<ul style="list-style-type:square;">
+  										<li>Height: {{height}}</li>
+  										<li>sampleChara</li>
+  										<li>sampleChar</li>
+										</ul>
+									</div>
+									</div>
+									<div class="form-group m-form__group row">
+										<label> Interests: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+										<div>
+											<br>
+											<ul style="list-style-type:square;">
+												<li>sampleInterest</li>
+												<li>sampleInterest</li>
+												<li>sampleInterest</li>
+											</ul>
+										</div>
+										</div>
+							</div>
+						</div>
+						<div class="m-portlet__foot m-portlet__foot--fit">
+
+						</div>
+
+					<!--end::Form-->
+				</div>
+				<!--end::Portlet-->
+			</div>
+			<div class="col-lg-4">
+				<!--begin::Portlet-->
+				<div class="m-portlet">
+					<div class="m-portlet__head">
+						<div class="m-portlet__head-caption">
+							<div class="m-portlet__head-title">
+								<span class="m-portlet__head-icon m--hide">
+									<i class="la la-gear"></i>
+								</span>
+								<h3 class="m-portlet__head-text">
+									Interested?
+								</h3>
+							</div>
+						</div>
+					</div>
+
+					<!--begin::Form-->
+						<div class="m-portlet__body">
+							<div class="m-form__section m-form__section--first">
+								<div class="form-group m-form__group row">
+									<button type="submit" class="btn btn-primary">Yes</button>
+									<button type="reset" class="btn btn-secondary">No</button>
+									</div>
+							</div>
+						</div>
+						<div class="m-portlet__foot m-portlet__foot--fit">
+
+						</div>
+
+					<!--end::Form-->
+				</div>
+				<!--end::Portlet-->
+			</div>
+
+
+
+
+		</div>
+
+		<!--End::Main Portlet-->
+	</div>
+</div>
+
+
+
+
+
+</form>
 {{> footer}}
