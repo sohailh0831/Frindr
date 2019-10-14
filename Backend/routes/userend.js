@@ -340,6 +340,9 @@ router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   getProfile(req.user.email).then(result => {
     if (result.error == false) {
+      if (Object.entries(result.message.message.interests).length === 0 && result.message.message.interests.constructor === Object) {
+          result.message.message.interests = [];
+      }
       return res.render('platform/profile.hbs', {
         user: result.message.message,
         error: req.flash('error'),
