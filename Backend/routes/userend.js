@@ -16,6 +16,9 @@ const mysql = require('mysql');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
 const geolib = require('geolib');
+var NodeGeocoder = require('node-geocoder');
+
+
 import {
   postProfile,
   patchBio,
@@ -81,6 +84,26 @@ router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.a
 
 passport.use(new LocalStrategy({ passReqToCallback: true, },
   function (req, username, password, done) {
+
+
+
+    //location
+    var geocoder = NodeGeocoder({
+      provider: 'google',
+      httpAdapter: 'https',
+      apiKey: 'AIzaSyDxwMeTbl6RTYI0J1jVjXyjUYJjbwilcgE',
+      formatter: null
+    });
+
+    geocoder.reverse({lat:req.body.latitude,lon:req.body.longitude})
+      .then(function(res) {
+        var loc = res[0].administrativeLevels.level2short + '-' + res[0].administrativeLevels.level1short;
+        console.log("inside " + loc);
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
+
     let con = mysql.createConnection(dbInfo);
     con.query(`SELECT * FROM profile WHERE email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
@@ -101,6 +124,7 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
           //     //need some error checking here
 
           //     con.end();
+
 
 
           // });
@@ -357,6 +381,7 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         pets: result.message.message.characteristics['pets'],
         religious: result.message.message.characteristics['religious'],
         user_interests: result.message.message.interests,
+        user_pictures: result.message.message.pictures
       });
     } else {
       req.flash('error', 'Error.');
