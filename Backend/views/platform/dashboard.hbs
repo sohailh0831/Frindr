@@ -1,17 +1,5 @@
 {{> header}}
 
-<script>
-$(document).ready(function() {
-  var str = $(user_interests);
-
-  var arr = str.split(",");
-  $.each(arr, function(value, index) {
-    $("#myList").append("<li>" + index + "</li>");
-  });
-});
-
-
-</script>
 <div class="m-grid__item m-grid__item--fluid m-wrapper">
 
 	<div class="m-content">
@@ -100,7 +88,7 @@ $(document).ready(function() {
 											<li>Smoking: {{smoking}}</li>
 											<li>Pets: {{pets}}</li>
 											<li>Religious: {{religious}}</li>
-											<li>Interests: {{user_interests}}</li>
+											<li>Pictures: {{user_pictures}}</li>
 										</ul>
 									</div>
 									</div>
@@ -108,7 +96,7 @@ $(document).ready(function() {
 										<label> Interests: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
 										<div>
 											<br>
-											<ul id="myList">
+											<ul style="list-style-type:square;">
 												{{#each user_interests}}
 												<li>{{this}}</li>
 												{{/each}}

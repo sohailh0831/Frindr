@@ -50,6 +50,7 @@ export const getProfile = async (email) => {
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
       results.message.location = JSON.parse(results.message.location);
+      results.message.pictures = JSON.parse(results.message.pictures);
       return {error: false, message: results};
     }
     else {
