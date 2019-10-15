@@ -24,20 +24,15 @@ export const getMatches = async (req) => {
         if (!req.body.email) {
           throw new Error("Need email")
         }
-        let compare;
-        if(!req.body.try){
-          compare = 5;
-        }else if (req.body.try < 6){
-          compare = 5-req.body.try;
-        } else {
-          throw new Error("No results")
-        }
         let results = await getProfileIntern(req);
         if (results.error == true) {
           return results;
         }
         const userProfile = results.message[0];
-        
+        let seenList = JSON.parse(userProfile.seen);
+        if (seenList === null){
+          seenList = [];
+        }
         results = await getProfilesStore(req, userProfile.location);
         if (results.error == true) {
             return results;
@@ -47,30 +42,41 @@ export const getMatches = async (req) => {
         let userInterests = userProfile.interests;
         for (var i = 0; i < results.message.length; i++){
           let current = results.message[i];
+          if (seenList.includes(current.email)){
+            continue;
+          }
           interests = JSON.parse(userInterests);
-          let keys = Object.keys(interests);
           let count = 0;
-          for(var j = 0; j < keys.length; j++){
-            let currKey = keys[i];
+          for(var j = 0; j < interests.length; j++){
+            let currKey = interests[i];
             if(current[currKey] === userInterests[currKey]){
               count++;
             }
           }
-          if (count >= compare){
-            list.push(current);
+          list.push({user: current, count: count})
+        }
+        for (var i = 1; i < list.length; i++){ //sort list
+          for (var j = i; j > 0; j--){
+            if(list[j].count < list[j-1].count){
+              let temp = list[j];
+              list[j] = list[j-1];
+              list[j-1] = temp;
+            }
           }
         }
-        return list;
+
+        return {message: list[0], error: false};
       } catch (error) {
         return { error: true, message: error.stack };
       }
 };
+
 export const patchBlock = async (req) => {
   try {
     if (!req.body.email || typeof req.body.block !== undefined) {
       throw new Error("Need email and block boolean")
     }
-    let results = await patchNameStore(req);
+    let results = await patchBlockStore(req);
     if (results.error == false) {
       return results;
     }
@@ -81,6 +87,24 @@ export const patchBlock = async (req) => {
     return { error: true, message: error.stack };
   }
 };
+
+export const patchSeen = async (req) => {
+  try {
+    if (!req.body.email || typeof req.body.block !== undefined) {
+      throw new Error("Need email and block boolean")
+    }
+    let results = await patchSeenStore(req);
+    if (results.error == false) {
+      return results;
+    }
+    else {
+      return results;
+    }
+  } catch (error) {
+    return { error: true, message: error.stack };
+  }
+};
+
 
 function getProfilesStore(req, location){
   return new Promise(resolve => {
@@ -112,11 +136,32 @@ function getProfilesStore(req, location){
 
 function patchBlockStore(req) {
   let email = req.body.email;
-  let block = req.body.block;
+  let block = JSON.stringify(req.body.block);
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
       con.query(`UPDATE profile SET block=${mysql.escape(block)} WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+        if (error) {
+          console.log(error.stack);
+          con.end();
+          resolve({ error: true, message: error })
+        }
+        con.end();
+        resolve({ error: false, message: resultsUpdate })
+      });
+    } catch (error) {
+      resolve({ error: true, message: error })
+    }
+  });
+}
+
+function patchSeenStore(req) {
+  let email = req.body.email;
+  let block = JSON.stringify(req.body.seen);
+  return new Promise(resolve => {
+    try {
+      let con = mysql.createConnection(dbInfo);
+      con.query(`UPDATE profile SET seen=${mysql.escape(block)} WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
