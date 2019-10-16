@@ -319,11 +319,12 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
     });
 });
 
-router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
     req.body = req.user;
 
     //here is what I want email to equal
-    let email = getMatches(req).message;
+    console.log(req.body.email)
+    let email = await getMatches(req);
     console.log(email); //should be email of user returned through getMatches(), but is undefined for some reason
 
     //currently just setting it to the current user since the getMatches isn't calling correctly

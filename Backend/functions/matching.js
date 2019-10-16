@@ -37,23 +37,20 @@ export const getMatches = async (req) => {
         if (results.error == true) {
             return results;
           }
-        console.log(results);
         let list = [];
-        let userInterests = userProfile.interests;
+        let userInterests = JSON.parse(userProfile.interests);
         for (var i = 0; i < results.message.length; i++){
-          let current = results.message[i];
-          if (seenList.includes(current.email)){
+          let current = JSON.parse(results.message[i].interests);
+          if (seenList.includes(results.message[i].email)){
             continue;
           }
-          interests = JSON.parse(userInterests);
           let count = 0;
-          for(var j = 0; j < interests.length; j++){
-            let currKey = interests[i];
-            if(current[currKey] === userInterests[currKey]){
+          for(var j = 0; j < userInterests.length; j++){
+            if(current.includes(userInterests[j])){
               count++;
             }
           }
-          list.push({user: current, count: count})
+          list.push({user: results.message[i], count: count})
         }
         for (var i = 1; i < list.length; i++){ //sort list
           for (var j = i; j > 0; j--){
@@ -64,8 +61,8 @@ export const getMatches = async (req) => {
             }
           }
         }
-        console.log(list);
-        return {message: list[0].email, error: false};
+        // console.log(list);
+        return {message: list[0].user.email, count: list[0].count, error: false};
       } catch (error) {
         return { error: true, message: error.stack };
       }
