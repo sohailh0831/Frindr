@@ -92,7 +92,9 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
     var myLocationVariable = 'just initialing it here'
      await geocoder.reverse({lat:req.body.latitude,lon:req.body.longitude})
       .then(function(res) {
-        myLocationVariable = res[0].administrativeLevels.level2short + '-' + res[0].administrativeLevels.level1short;
+        var city =  res[0].administrativeLevels.level2short.replace(/\s/g, '');
+        var state = res[0].administrativeLevels.level1short.replace(/\s/g, '');
+        myLocationVariable = city+state;
       })
       .catch(function(err) {
         console.log(err);
@@ -318,7 +320,16 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
 });
 
 router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  let email = req.user.email;
+    req.body = req.user;
+
+    //here is what I want email to equal
+    let email = getMatches(req).message;
+    console.log(email); //should be email of user returned through getMatches(), but is undefined for some reason
+
+    //currently just setting it to the current user since the getMatches isn't calling correctly
+    email = req.user.email;
+
+
   getProfile(email).then(user => {
     if (user.error == false) {
       return res.render('platform/dashboard.hbs', {
@@ -334,7 +345,8 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
         pets: user.message.message.characteristics['pets'],
         religious: user.message.message.characteristics['religious'],
         user_interests: user.message.message.interests,
-        user_pictures: user.message.message.pictures
+        user_pictures: user.message.message.pictures,
+        user_name: user.message.message.name
       });
     } else {
       req.flash('error', 'Error.');

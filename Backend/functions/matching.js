@@ -28,12 +28,12 @@ export const getMatches = async (req) => {
         if (results.error == true) {
           return results;
         }
-        const userProfile = results.message[0];
+        const userProfile = results.message;
         let seenList = JSON.parse(userProfile.seen);
         if (seenList === null){
           seenList = [];
         }
-        results = await getProfilesStore(req, userProfile.location);
+        results = await getProfilesStoreMatches(req,userProfile.location);
         if (results.error == true) {
             return results;
           }
@@ -64,8 +64,8 @@ export const getMatches = async (req) => {
             }
           }
         }
-
-        return {message: list[0], error: false};
+        console.log(list);
+        return {message: list[0].email, error: false};
       } catch (error) {
         return { error: true, message: error.stack };
       }
@@ -106,11 +106,11 @@ export const patchSeen = async (req) => {
 };
 
 
-function getProfilesStore(req, location){
+function getProfilesStoreMatches(req,location){
   return new Promise(resolve => {
       try {
         let con = mysql.createConnection(dbInfo);
-        con.query(`SELECT * FROM profile where location = ${location};`, (error, results, fields) => {
+        con.query(`SELECT * FROM profile WHERE location='${location}';`, (error, results, fields) => {
           if (error) {
             console.log(error.stack);
             con.end();
@@ -125,7 +125,7 @@ function getProfilesStore(req, location){
             con.end();
             req.flash('success', 'Profile found');
             resolve({ error: false, message: results, found: true })
-  
+
           }
         });
       } catch (error) {
