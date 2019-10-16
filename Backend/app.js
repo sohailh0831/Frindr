@@ -11,16 +11,32 @@ const flash = require('connect-flash');
 const session = require('express-session');
 var passport = require("passport");
 var request = require("request");
+const https = require('https');
+const fs = require('fs');
+
 
 const app = express();
 
 // Start HTTP Server
-const port = 3000;
+const port = 7777;
+
+
+// Certificate
+// const privateKey = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/privkey.pem', 'utf8');
+// const certificate = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/cert.pem', 'utf8');
+// const ca = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/chain.pem', 'utf8');
+// const credentials = {
+// 	key: privateKey,
+// 	cert: certificate,
+// 	ca: ca
+// };
+
 
 app.engine('.hbs', exphbs({
   extname: 'hbs',
   defaultLayout: null,
   partialsDir: path.join(__dirname, 'views/partials'),
+  helpers: require("./helpers/handlebars.js").helpers,
 }));
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views'));
@@ -49,13 +65,16 @@ app.use(passport.session());
 // Use routes
 app.use('/', userend);
 
+//AIzaSyDsppSm82CGZMZQTuEuNFPK5hikt9aquPs
+
 // Static folder
 app.use(express.static(path.join(__dirname, '/public')));
 
 app.listen(port, () =>{
   console.log(`Server started on port ${port}`);
 });
+// const httpsServer = https.createServer(credentials, app);
 
-// const api = require('./routes/userend')(express);
-// app.use('/', api);
-
+// httpsServer.listen(443, () => {
+// 	console.log(`Got SSL up in this bish`);
+// });

@@ -1,0 +1,5 @@
+
+> frindr@1.0.0 start /root/Frindr/Backend
+> babel-node app.js
+
+Server started on port 80
