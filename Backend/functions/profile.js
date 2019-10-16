@@ -61,7 +61,16 @@ export const getProfile = async (email) => {
   }
 }
 
-export const patchName = async (req) => {
+export const getProfileIntern = async (req) => {
+  try {
+    let results = await getProfileStore(req);
+    return results;
+    }catch(error){
+      return error
+    }
+}
+
+export const patchName = async (req, res) => {
   try {
     if (!req.user.email || !req.body.name) {
       throw new Error("Need email and name")
