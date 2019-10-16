@@ -71,22 +71,12 @@ router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) 
   });
 });
 
-router.get('/location', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
-  return res.render('platform/locationTestPage.hbs', {
-    error: req.flash('error'),
-    success: req.flash('success')
-  });
-});
-
 router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.authenticate('local', { successRedirect: '/dashboard', failureRedirect: '/login', failureFlash: true }), (req, res) => {
   res.redirect('/dashboard');
 });
 
 passport.use(new LocalStrategy({ passReqToCallback: true, },
-  function (req, username, password, done) {
-
-
-
+   async function (req, username, password, done) {
     //location
     var geocoder = NodeGeocoder({
       provider: 'google',
@@ -95,15 +85,14 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
       formatter: null
     });
 
-    geocoder.reverse({lat:req.body.latitude,lon:req.body.longitude})
+    var myLocationVariable = 'just initialing it here'
+     await geocoder.reverse({lat:req.body.latitude,lon:req.body.longitude})
       .then(function(res) {
-        var loc = res[0].administrativeLevels.level2short + '-' + res[0].administrativeLevels.level1short;
-        console.log("inside " + loc);
+        myLocationVariable = res[0].administrativeLevels.level2short + '-' + res[0].administrativeLevels.level1short;
       })
       .catch(function(err) {
         console.log(err);
       });
-
     let con = mysql.createConnection(dbInfo);
     con.query(`SELECT * FROM profile WHERE email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
@@ -120,16 +109,15 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
             email: results[0].email,
             name: results[0].name,
           };
-          // con.query(`UPDATE users SET latitude=${mysql.escape(req.body.latitude)}, longitude=${mysql.escape(req.body.longitude)} WHERE username=${mysql.escape(user.username)};`, (error, results, fields) => {
-          //     //need some error checking here
-
-          //     con.end();
-
-
-
-          // });
-          con.end();
-          return done(null, user);
+           con.query(`UPDATE profile SET location=${mysql.escape(myLocationVariable)} WHERE email=${mysql.escape(user.email)};`, (error, results, fields) => {
+                if (error) {
+                  console.log(error.stack);
+                  con.end();
+                  return;
+                }
+               con.end();
+               return done(null, user);
+           });
         } else {
           con.end();
           return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
@@ -353,13 +341,6 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
     req.flash('error', 'Error.');
     return res.redirect('/dashboard');
   });
-});
-
-
-router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
-  var distance = geolib.getDistance({latitude: req.params.lat1, longitude: req.params.lng1 }, {latitude: req.params.lat2, longitude: req.params.lng2});
-
-  res.send('Distance from ' + req.params.lat1 + ',' + req.params.lng1 + ' to ' + req.params.lat2 + ',' + req.params.lng2 + ' is ' + distance + ' km');
 });
 
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {

@@ -49,7 +49,7 @@ export const getProfile = async (email) => {
     if (results.error == false) {
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
-      results.message.location = JSON.parse(results.message.location);
+      results.message.location = results.message.location;
       results.message.pictures = JSON.parse(results.message.pictures);
       return {error: false, message: results};
     }
