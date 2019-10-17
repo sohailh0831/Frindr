@@ -322,8 +322,14 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
 router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
     req.body = req.user;
 
-    //here is what I want email to equal
     let email = await getMatches(req);
+
+    if(email.error === true){ //if no user found
+      req.flash('error',"Sorry no one found");
+      return res.render('platform/dashboard.hbs', {
+        user_name: "No User Found"
+      });
+    }
 
 
   getProfile(email.message).then(user => {
