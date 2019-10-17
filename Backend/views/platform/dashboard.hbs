@@ -1,4 +1,5 @@
 {{> header}}
+
 <div class="m-grid__item m-grid__item--fluid m-wrapper">
 
 	<div class="m-content">
@@ -29,7 +30,7 @@
 									<i class="la la-gear"></i>
 								</span>
 								<h3 class="m-portlet__head-text">
-									Pictures
+									Name: {{user_name}}
 								</h3>
 							</div>
 						</div>
@@ -81,8 +82,15 @@
 										<br>
 										<ul style="list-style-type:square;">
   										<li>Height: {{height}}</li>
-  										<li>sampleChara</li>
-  										<li>sampleChar</li>
+  										<li>Exercise: {{exercise}}</li>
+  										<li>Education: {{education}}</li>
+											<li>Drinking: {{drinking}}</li>
+											<li>Smoking: {{smoking}}</li>
+											<li>Pets: {{pets}}</li>
+											<li>Religious: {{religious}}</li>
+											{{#each user_pictures}}
+											<li>Pictures: {{this}}</li>
+											{{/each}}
 										</ul>
 									</div>
 									</div>
@@ -91,9 +99,9 @@
 										<div>
 											<br>
 											<ul style="list-style-type:square;">
-												<li>sampleInterest</li>
-												<li>sampleInterest</li>
-												<li>sampleInterest</li>
+												{{#each user_interests}}
+												<li>{{this}}</li>
+												{{/each}}
 											</ul>
 										</div>
 										</div>
@@ -124,14 +132,19 @@
 					</div>
 
 					<!--begin::Form-->
+					<form class="m-login__form m-form" method="post" action="/checkmatch">
 						<div class="m-portlet__body">
 							<div class="m-form__section m-form__section--first">
 								<div class="form-group m-form__group row">
+
+									 <input type="hidden"  name="email" value="{{user_email}}">
+
 									<button type="submit" class="btn btn-primary">Yes</button>
-									<button type="reset" class="btn btn-secondary">No</button>
+									<button type="submit" class="btn btn-secondary">No</button>
 									</div>
 							</div>
 						</div>
+					</form>
 						<div class="m-portlet__foot m-portlet__foot--fit">
 
 						</div>
