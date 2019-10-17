@@ -16,9 +16,6 @@ const mysql = require('mysql');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
 const geolib = require('geolib');
-var NodeGeocoder = require('node-geocoder');
-
-
 import {
   postProfile,
   patchBio,
@@ -29,9 +26,6 @@ import {
   deleteProfile,
 } from "../functions/profile";
 
-import {
-  getMatches,
-} from "../functions/matching";
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
@@ -61,8 +55,7 @@ router.patch('/api/bio', patchBio);
 router.patch('/api/interests', patchInterests);
 router.patch('/api/characteristics', patchCharacteristics);
 
-/**Matching algorithm */
-router.get('/api/matches', getMatches)
+
 
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
@@ -75,30 +68,19 @@ router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) 
   });
 });
 
+router.get('/location', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
+  return res.render('platform/locationTestPage.hbs', {
+    error: req.flash('error'),
+    success: req.flash('success')
+  });
+});
+
 router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.authenticate('local', { successRedirect: '/dashboard', failureRedirect: '/login', failureFlash: true }), (req, res) => {
   res.redirect('/dashboard');
 });
 
 passport.use(new LocalStrategy({ passReqToCallback: true, },
-   async function (req, username, password, done) {
-    //location
-    var geocoder = NodeGeocoder({
-      provider: 'google',
-      httpAdapter: 'https',
-      apiKey: 'AIzaSyDxwMeTbl6RTYI0J1jVjXyjUYJjbwilcgE',
-      formatter: null
-    });
-
-    var myLocationVariable = 'just initialing it here'
-     await geocoder.reverse({lat:req.body.latitude,lon:req.body.longitude})
-      .then(function(res) {
-        var city =  res[0].administrativeLevels.level2short.replace(/\s/g, '');
-        var state = res[0].administrativeLevels.level1short.replace(/\s/g, '');
-        myLocationVariable = city+state;
-      })
-      .catch(function(err) {
-        console.log(err);
-      });
+  function (req, username, password, done) {
     let con = mysql.createConnection(dbInfo);
     con.query(`SELECT * FROM profile WHERE email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
@@ -115,15 +97,15 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
             email: results[0].email,
             name: results[0].name,
           };
-           con.query(`UPDATE profile SET location=${mysql.escape(myLocationVariable)} WHERE email=${mysql.escape(user.email)};`, (error, results, fields) => {
-                if (error) {
-                  console.log(error.stack);
-                  con.end();
-                  return;
-                }
-               con.end();
-               return done(null, user);
-           });
+          // con.query(`UPDATE users SET latitude=${mysql.escape(req.body.latitude)}, longitude=${mysql.escape(req.body.longitude)} WHERE username=${mysql.escape(user.username)};`, (error, results, fields) => {
+          //     //need some error checking here
+
+          //     con.end();
+
+
+          // });
+          con.end();
+          return done(null, user);
         } else {
           con.end();
           return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
@@ -319,20 +301,9 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
     });
 });
 
-router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
-    req.body = req.user;
-
-    let email = await getMatches(req);
-
-    if(email.error === true){ //if no user found
-      req.flash('error',"Sorry no one found");
-      return res.render('platform/dashboard.hbs', {
-        user_name: "No User Found"
-      });
-    }
-
-
-  getProfile(email.message).then(user => {
+router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let email = req.user.email;
+  getProfile(email).then(user => {
     if (user.error == false) {
       return res.render('platform/dashboard.hbs', {
         user: user.message.message,
@@ -347,9 +318,6 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
         pets: user.message.message.characteristics['pets'],
         religious: user.message.message.characteristics['religious'],
         user_interests: user.message.message.interests,
-        user_pictures: user.message.message.pictures,
-        user_name: user.message.message.name,
-        user_email: user.message.message.email
       });
     } else {
       req.flash('error', 'Error.');
@@ -360,6 +328,13 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
     req.flash('error', 'Error.');
     return res.redirect('/dashboard');
   });
+});
+
+
+router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
+  var distance = geolib.getDistance({latitude: req.params.lat1, longitude: req.params.lng1 }, {latitude: req.params.lat2, longitude: req.params.lng2});
+
+  res.send('Distance from ' + req.params.lat1 + ',' + req.params.lng1 + ' to ' + req.params.lat2 + ',' + req.params.lng2 + ' is ' + distance + ' km');
 });
 
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
@@ -381,8 +356,6 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         pets: result.message.message.characteristics['pets'],
         religious: result.message.message.characteristics['religious'],
         user_interests: result.message.message.interests,
-        user_pictures: result.message.message.pictures,
-        user_email: result.message.message.email
       });
     } else {
       req.flash('error', 'Error.');
@@ -473,51 +446,6 @@ router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAut
     return res.redirect('/profile');
   });
 });
-
-router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  let email = req.body.email;
-  let currentUserEmail = req.user.email;
-  //add to seen listen
-  getProfile(currentUserEmail).then(results => {
-      if (results.error == false) {
-          var seenList = JSON.parse(results.message.message.seen);
-          if(JSON.parse(results.message.message.seen) === null){
-            seenList = [];
-            seenList.push(email);
-          }
-          else{
-            seenList.push(email);
-          }
-          let con = mysql.createConnection(dbInfo);
-          con.query(`UPDATE profile SET seen='${JSON.stringify(seenList)}' WHERE email=${mysql.escape(currentUserEmail)};`, (error, results, fields) => {
-            if (error) {
-                  console.log(error.stack);
-                  con.end();
-                  return;
-              }
-
-          });
-          return res.redirect('/dashboard');
-
-      } else {
-        req.flash('error', 'Error.');
-        return res.redirect('/dashboard');
-      }
-    }).catch(error => {
-      console.log(error);
-      req.flash('error', 'Error.');
-      return res.redirect('/dashboard');
-    });
-
-
-  //if button is cliked yes -> add to potentialMatch list
-  //if other user already had 'yes' add to matchList
-
-
-  //res.redirect('/dashboard');
-});
-
-
 
 
 
