@@ -49,7 +49,7 @@ export const getProfile = async (email) => {
     if (results.error == false) {
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
-      results.message.pictures = JSON.parse(results.message.pictures);
+      results.message.location = JSON.parse(results.message.location);
       return {error: false, message: results};
     }
     else {
@@ -60,17 +60,7 @@ export const getProfile = async (email) => {
   }
 }
 
-export const getProfileIntern = async (req) => {
-  try {
-
-    let results = await getProfileStore(req.body.email);
-    return results;
-    }catch(error){
-      return error
-    }
-}
-
-export const patchName = async (req, res) => {
+export const patchName = async (req) => {
   try {
     if (!req.user.email || !req.body.name) {
       throw new Error("Need email and name")
