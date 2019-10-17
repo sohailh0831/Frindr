@@ -20,17 +20,17 @@ const app = express();
 // Start HTTP Server
 const port = 80;
 
-
-// Certificate
-// const privateKey = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/privkey.pem', 'utf8');
-// const certificate = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/cert.pem', 'utf8');
-// const ca = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/chain.pem', 'utf8');
-// const credentials = {
-// 	key: privateKey,
-// 	cert: certificate,
-// 	ca: ca
-// };
-
+ //comment lines out if testing locally
+//Certificate
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/chain.pem', 'utf8');
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+//till here
 
 app.engine('.hbs', exphbs({
   extname: 'hbs',
@@ -73,8 +73,10 @@ app.use(express.static(path.join(__dirname, '/public')));
 app.listen(port, () =>{
   console.log(`Server started on port ${port}`);
 });
-// const httpsServer = https.createServer(credentials, app);
+//comment lines out if local
+const httpsServer = https.createServer(credentials, app);
 
-// httpsServer.listen(443, () => {
-// 	console.log(`Got SSL up in this bish`);
-// });
+httpsServer.listen(443, () => {
+	console.log(`Got SSL up in this bish`);
+});
+//till here
