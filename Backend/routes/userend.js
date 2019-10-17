@@ -30,7 +30,7 @@ import {
 } from "../functions/profile";
 
 import {
-  getMatches
+  getMatches,
 } from "../functions/matching";
 let transporter = nodemailer.createTransport({
  service: 'gmail',
@@ -323,15 +323,10 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
     req.body = req.user;
 
     //here is what I want email to equal
-    console.log(req.body.email)
     let email = await getMatches(req);
-    console.log(email); //should be email of user returned through getMatches(), but is undefined for some reason
-
-    //currently just setting it to the current user since the getMatches isn't calling correctly
-    email = req.user.email;
 
 
-  getProfile(email).then(user => {
+  getProfile(email.message).then(user => {
     if (user.error == false) {
       return res.render('platform/dashboard.hbs', {
         user: user.message.message,
@@ -347,7 +342,8 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
         religious: user.message.message.characteristics['religious'],
         user_interests: user.message.message.interests,
         user_pictures: user.message.message.pictures,
-        user_name: user.message.message.name
+        user_name: user.message.message.name,
+        user_email: user.message.message.email
       });
     } else {
       req.flash('error', 'Error.');
@@ -379,7 +375,8 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         pets: result.message.message.characteristics['pets'],
         religious: result.message.message.characteristics['religious'],
         user_interests: result.message.message.interests,
-        user_pictures: result.message.message.pictures
+        user_pictures: result.message.message.pictures,
+        user_email: result.message.message.email
       });
     } else {
       req.flash('error', 'Error.');
@@ -470,6 +467,51 @@ router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAut
     return res.redirect('/profile');
   });
 });
+
+router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let email = req.body.email;
+  let currentUserEmail = req.user.email;
+  //add to seen listen
+  getProfile(currentUserEmail).then(results => {
+      if (results.error == false) {
+          var seenList = JSON.parse(results.message.message.seen);
+          if(JSON.parse(results.message.message.seen) === null){
+            seenList = [];
+            seenList.push(email);
+          }
+          else{
+            seenList.push(email);
+          }
+          let con = mysql.createConnection(dbInfo);
+          con.query(`UPDATE profile SET seen='${JSON.stringify(seenList)}' WHERE email=${mysql.escape(currentUserEmail)};`, (error, results, fields) => {
+            if (error) {
+                  console.log(error.stack);
+                  con.end();
+                  return;
+              }
+
+          });
+          return res.redirect('/dashboard');
+
+      } else {
+        req.flash('error', 'Error.');
+        return res.redirect('/dashboard');
+      }
+    }).catch(error => {
+      console.log(error);
+      req.flash('error', 'Error.');
+      return res.redirect('/dashboard');
+    });
+
+
+  //if button is cliked yes -> add to potentialMatch list
+  //if other user already had 'yes' add to matchList
+
+
+  //res.redirect('/dashboard');
+});
+
+
 
 
 

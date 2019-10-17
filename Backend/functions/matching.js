@@ -120,7 +120,6 @@ function getProfilesStoreMatches(req,location){
           }
           else if (results) {
             con.end();
-            req.flash('success', 'Profile found');
             resolve({ error: false, message: results, found: true })
 
           }
@@ -152,23 +151,25 @@ function patchBlockStore(req) {
   });
 }
 
-function patchSeenStore(req) {
-  let email = req.body.email;
-  let block = JSON.stringify(req.body.seen);
-  return new Promise(resolve => {
-    try {
-      let con = mysql.createConnection(dbInfo);
-      con.query(`UPDATE profile SET seen=${mysql.escape(block)} WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
-        if (error) {
-          console.log(error.stack);
-          con.end();
-          resolve({ error: true, message: error })
-        }
-        con.end();
-        resolve({ error: false, message: resultsUpdate })
-      });
-    } catch (error) {
-      resolve({ error: true, message: error })
-    }
-  });
-}
+// function patchSeenStore(userEmail,otherEmail) {
+//   return new Promise(resolve => {
+//     try {
+//
+//       var seenList = getProfile(userEmail).message.seen;
+//       console.log(seenList);
+//
+//       let con = mysql.createConnection(dbInfo);
+//       con.query(`UPDATE profile SET seen=${JSON.stringify(seenList)})} WHERE email=${mysql.escape(userEmail)};`, (error, resultsUpdate, fields) => {
+//         if (error) {
+//           console.log(error.stack);
+//           con.end();
+//           resolve({ error: true, message: error })
+//         }
+//         con.end();
+//         resolve({ error: false, message: resultsUpdate })
+//       });
+//     } catch (error) {
+//       resolve({ error: true, message: error })
+//     }
+//   });
+// }

@@ -132,14 +132,19 @@
 					</div>
 
 					<!--begin::Form-->
+					<form class="m-login__form m-form" method="post" action="/checkmatch">
 						<div class="m-portlet__body">
 							<div class="m-form__section m-form__section--first">
 								<div class="form-group m-form__group row">
+
+									 <input type="hidden"  name="email" value="{{user_email}}">
+
 									<button type="submit" class="btn btn-primary">Yes</button>
-									<button type="reset" class="btn btn-secondary">No</button>
+									<button type="submit" class="btn btn-secondary">No</button>
 									</div>
 							</div>
 						</div>
+					</form>
 						<div class="m-portlet__foot m-portlet__foot--fit">
 
 						</div>
