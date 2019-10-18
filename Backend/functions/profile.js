@@ -1,18 +1,18 @@
-//import {envSetup, envGet} from 'env.json'
-//envSetup(); // parse environment variables
 const express = require('express');
 const AuthenticationFunctions = require('../Authentication.js');
 const expressValidator = require('express-validator');
 const mysql = require('mysql');
 const router = express.Router();
 const flash = require('connect-flash');
+const dotenv = require('dotenv');
+dotenv.config();
 
 let dbInfo = {
   connectionLimit: 100,
-  host: '67.207.85.51',
-  user: 'frindrDB',
-  password: 'PurdueTesting1!',
-  database: 'frindr',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
   port: 3306,
   multipleStatements: true
 };
@@ -244,7 +244,7 @@ function postProfileStore(req) {
   else characteristics = JSON.stringify({});
   if (req.body.interests) interests = JSON.stringify(req.body.interests);
   else interests = JSON.stringify({});
-  let location = JSON.stringify({});
+  let location = req.body.location;
   return new Promise(resolve => {
     try {
       let res;

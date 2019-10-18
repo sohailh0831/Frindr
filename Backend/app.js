@@ -82,7 +82,7 @@ app.listen(port, () =>{
 
 if(process.env.NODE_ENV === 'server'){
   const httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(443, () => {
+  httpsServer.listen(process.env.SSLPORT, () => {
 	   console.log(`SSL started`);
 });
 }
