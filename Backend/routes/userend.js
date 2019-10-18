@@ -17,6 +17,8 @@ const moment = require('moment');
 const nodemailer = require('nodemailer');
 const geolib = require('geolib');
 var NodeGeocoder = require('node-geocoder');
+const dotenv = require('dotenv');
+dotenv.config();
 
 
 import {
@@ -86,7 +88,7 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
     var geocoder = NodeGeocoder({
       provider: 'google',
       httpAdapter: 'https',
-      apiKey: 'AIzaSyDxwMeTbl6RTYI0J1jVjXyjUYJjbwilcgE',
+      apiKey: process.env.API_KEY,
       formatter: null
     });
 
@@ -331,7 +333,7 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
     }
 
 
-  getProfile(email.message).then(user => {
+  await getProfile(email.message).then(user => {
     if (user.error == false) {
       return res.render('platform/dashboard.hbs', {
         user: user.message.message,
@@ -473,14 +475,14 @@ router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAut
   });
 });
 
-router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
   let email = req.body.email;
   let currentUserEmail = req.user.email;
   let userChoice = req.body.choice;
   //add to seen listen
-  getProfile(currentUserEmail).then(results => {
+  await getProfile(currentUserEmail).then(results => {
       if (results.error == false) {
-          var seenList = results.message.message.seen;
+          var seenList;// = results.message.message.seen;
           var potentialMatchList;
 
           if(!results.message.message.potentialMatchList){
@@ -502,6 +504,9 @@ router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, re
           */
           if(!results.message.message.seen){
             seenList = [];
+          }
+          else{
+            seenList = results.message.message.seen;
           }
             seenList.push(email);
 
@@ -550,6 +555,7 @@ router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, re
 
 });
 
+
 router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   getProfile(req.user.email).then(result => {
     if (result.error == false) {
@@ -570,9 +576,5 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
     return res.redirect('/dashboard');
   });
 });
-
-
-
-
 
 module.exports = router;
