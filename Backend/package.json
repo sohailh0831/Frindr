@@ -29,6 +29,7 @@
     "express-handlebars": "^3.1.0",
     "express-session": "^1.16.2",
     "express-validator": "^5.3.1",
+    "geo-coder": "^1.0.2",
     "geolib": "^3.0.4",
     "handlebars": "^4.2.0",
     "hbs": "^4.0.4",
