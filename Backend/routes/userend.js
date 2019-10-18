@@ -171,7 +171,6 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   let hashedPassword = bcrypt.hashSync(req.body.password, salt);
   req.body.password = hashedPassword;
   postProfile(req).then(result => {
-    console.log(result);
     if (result.error == false) {
       req.flash('success', "Successfully registered. You may now login.");
       return res.redirect('/login');
