@@ -13,24 +13,32 @@ var passport = require("passport");
 var request = require("request");
 const https = require('https');
 const fs = require('fs');
+const dotenv = require('dotenv');
+dotenv.config();
 
 
 const app = express();
 
 // Start HTTP Server
-const port = 7777;
+const port = process.env.PORT;
 
  //comment lines out if testing locally
 //Certificate
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/cert.pem', 'utf8');
-const ca = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/chain.pem', 'utf8');
-const credentials = {
-	key: privateKey,
-	cert: certificate,
-	ca: ca
-};
-//till here
+var privateKey = 'test';
+var certificate = 'test';
+var ca = 'test';
+var credentials = 'test';
+
+if(process.env.NODE_ENV === 'server'){
+  privateKey = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/privkey.pem', 'utf8');
+  certificate = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/cert.pem', 'utf8');
+  ca = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/chain.pem', 'utf8');
+  credentials = {
+  	key: privateKey,
+  	cert: certificate,
+  	ca: ca
+  };
+}
 
 app.engine('.hbs', exphbs({
   extname: 'hbs',
@@ -52,7 +60,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // Express Session
 app.use(session({
-    secret: 'q3lk4gnk3ngkl3kgnq3klgn',
+    secret: process.env.PASS_SECRET,
     saveUninitialized: false,
     resave: false
 }));
@@ -65,18 +73,16 @@ app.use(passport.session());
 // Use routes
 app.use('/', userend);
 
-//AIzaSyDsppSm82CGZMZQTuEuNFPK5hikt9aquPs
-
 // Static folder
 app.use(express.static(path.join(__dirname, '/public')));
 
 app.listen(port, () =>{
   console.log(`Server started on port ${port}`);
 });
-//comment lines out if local
-const httpsServer = https.createServer(credentials, app);
 
-httpsServer.listen(443, () => {
-	console.log(`Got SSL up in this bish`);
+if(process.env.NODE_ENV === 'server'){
+  const httpsServer = https.createServer(credentials, app);
+  httpsServer.listen(443, () => {
+	   console.log(`SSL started`);
 });
-//till here
+}

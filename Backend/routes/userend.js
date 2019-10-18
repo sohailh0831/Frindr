@@ -17,6 +17,8 @@ const moment = require('moment');
 const nodemailer = require('nodemailer');
 const geolib = require('geolib');
 var NodeGeocoder = require('node-geocoder');
+const dotenv = require('dotenv');
+dotenv.config();
 
 
 import {
@@ -86,7 +88,7 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
     var geocoder = NodeGeocoder({
       provider: 'google',
       httpAdapter: 'https',
-      apiKey: 'AIzaSyDxwMeTbl6RTYI0J1jVjXyjUYJjbwilcgE',
+      apiKey: process.env.API_KEY,
       formatter: null
     });
 
