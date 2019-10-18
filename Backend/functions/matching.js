@@ -42,7 +42,7 @@ export const getMatches = async (req) => {
         for (var i = 0; i < results.message.length; i++){
           //need to make run async
           let current = JSON.parse(results.message[i].interests);
-          if (seenList.includes(results.message[i].email || results.message[i].email == req.body.email)){
+          if (seenList.includes(results.message[i].email) || results.message[i].email == req.body.email){
             continue;
           }
           let count = 0;
