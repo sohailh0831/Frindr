@@ -326,9 +326,8 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
 
     let email = await getMatches(req);
     if(email.error === true){ //if no user found
-      req.flash('error',"Sorry no one found");
       return res.render('platform/dashboard.hbs', {
-        user_name: "No User Found"
+        usersDoNotExist: true,
       });
     }
 
@@ -550,6 +549,27 @@ router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, re
       return res.redirect('/dashboard');
     });
 
+});
+
+router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  getProfile(req.user.email).then(result => {
+    if (result.error == false) {
+      if (!result.message.message.matches || (Object.entries(result.message.message.matches).length === 0 && result.message.message.matches.constructor === Object)) {
+        return res.render('platform/matches.hbs', {
+          noMatches: true,
+        });
+      }
+      return res.render('platform/matches.hbs', {
+        matches: result.message.message.matches,
+      });
+    } else {
+      req.flash('error', 'Error.');
+      return res.redirect('/dashboard');
+    }
+  }).catch(error => {
+    req.flash('error', "Error.");
+    return res.redirect('/dashboard');
+  });
 });
 
 
