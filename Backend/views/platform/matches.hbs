@@ -1,0 +1,72 @@
+{{> header}}
+<div class="m-grid__item m-grid__item--fluid m-wrapper">
+
+	<div class="m-content">
+		{{#if error}}
+		<div class="alert alert-danger alert-dismissible fade show" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			</button>
+			<strong>Oh snap!</strong> {{error}}
+		</div>
+		{{/if}}
+		{{#if success}}
+		<div class="alert alert-success alert-dismissible fade show" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			</button>
+			<strong>Success!</strong> {{success}}
+		</div>
+		{{/if}}
+        {{#if noMatches}}
+		<div class="alert alert-danger alert-dismissible fade show" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			</button>
+			<strong>Oh snap!</strong> You do not have any matches. Keep swiping!
+		</div>
+		{{/if}}
+
+		<div class="row">
+            {{#unless noMatches}}
+            {{#each matches}}
+            <div class="col-sm-3">
+				<!--begin::Portlet-->
+				<div class="m-portlet">
+					<div class="m-portlet__head">
+						<div class="m-portlet__head-caption">
+							<div class="m-portlet__head-title">
+								<span class="m-portlet__head-icon m--hide">
+									<i class="la la-gear"></i>
+								</span>
+								<h3 class="m-portlet__head-text">
+									{{this}}
+								</h3>
+							</div>
+						</div>
+					</div>
+
+					<!--begin::Form-->
+						<div class="m-portlet__body">
+							<div class="m-form__section m-form__section--first">
+								<div class="form-group m-form__group row">
+								</div>
+							</div>
+						</div>
+						<div class="m-portlet__foot m-portlet__foot--fit">
+							<div class="m-form__actions m-form__actions">
+								<button type="submit" class="btn btn-primary">Chat</button>
+							</div>
+						</div>
+
+					<!--end::Form-->
+				</div>
+				<!--end::Portlet-->
+			</div>
+            {{/each}}
+            {{/unless}}
+            
+		</div>
+
+		<!--End::Main Portlet-->
+	</div>
+</div>
+
+{{> footer}}
