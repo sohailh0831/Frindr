@@ -18,7 +18,7 @@ const fs = require('fs');
 const app = express();
 
 // Start HTTP Server
-const port = 80;
+const port = 7777;
 
  //comment lines out if testing locally
 //Certificate

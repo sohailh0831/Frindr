@@ -325,14 +325,14 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
 
     let email = await getMatches(req);
     if(email.error === true){ //if no user found
-      req.flash('error',"Sorry no one found");
+      console.log(email.message);
       return res.render('platform/dashboard.hbs', {
         user_name: "No User Found"
       });
     }
 
 
-  getProfile(email.message).then(user => {
+  await getProfile(email.message).then(user => {
     if (user.error == false) {
       return res.render('platform/dashboard.hbs', {
         user: user.message.message,
@@ -474,14 +474,14 @@ router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAut
   });
 });
 
-router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
   let email = req.body.email;
   let currentUserEmail = req.user.email;
   let userChoice = req.body.choice;
   //add to seen listen
-  getProfile(currentUserEmail).then(results => {
+  await getProfile(currentUserEmail).then(results => {
       if (results.error == false) {
-          var seenList = results.message.message.seen;
+          var seenList;// = results.message.message.seen;
           var potentialMatchList;
 
           if(!results.message.message.potentialMatchList){
@@ -503,6 +503,9 @@ router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, re
           */
           if(!results.message.message.seen){
             seenList = [];
+          }
+          else{
+            seenList = results.message.message.seen;
           }
             seenList.push(email);
 
@@ -550,9 +553,5 @@ router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, re
     });
 
 });
-
-
-
-
 
 module.exports = router;
