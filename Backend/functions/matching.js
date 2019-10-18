@@ -4,20 +4,22 @@ const expressValidator = require('express-validator');
 const mysql = require('mysql');
 const router = express.Router();
 const flash = require('connect-flash');
+const dotenv = require('dotenv');
+dotenv.config();
 import {
    getProfileIntern
   } from "./profile";
 
 
-let dbInfo = {
-  connectionLimit: 100,
-  host: '67.207.85.51',
-  user: 'frindrDB',
-  password: 'PurdueTesting1!',
-  database: 'frindr',
-  port: 3306,
-  multipleStatements: true
-};
+  let dbInfo = {
+    connectionLimit: 100,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    port: 3306,
+    multipleStatements: true
+  };
 
 export const getMatches = async (req) => {
     try {

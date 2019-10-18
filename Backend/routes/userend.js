@@ -38,16 +38,16 @@ import {
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
-        user: 'FrindrPurdue@gmail.com',
-        pass: 'Okaydone1234!'
+        user: process.env.NOTIFCATION_EMAIL,
+        pass: process.env.NOTIFICATION_PASS
     }
 });
 let dbInfo = {
   connectionLimit: 100,
-  host: '67.207.85.51',
-  user: 'frindrDB',
-  password: 'PurdueTesting1!',
-  database: 'frindr',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
   port: 3306,
   multipleStatements: true
 };
@@ -70,6 +70,9 @@ router.get('/api/matches', getMatches)
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
 });
+
+
+
 
 router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   return res.render('platform/login.hbs', {
