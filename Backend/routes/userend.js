@@ -17,6 +17,8 @@ const moment = require('moment');
 const nodemailer = require('nodemailer');
 const geolib = require('geolib');
 var NodeGeocoder = require('node-geocoder');
+const dotenv = require('dotenv');
+dotenv.config();
 
 
 import {
@@ -27,6 +29,7 @@ import {
   patchName,
   getProfile,
   deleteProfile,
+  makeMatch
 } from "../functions/profile";
 
 import {
@@ -85,7 +88,7 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
     var geocoder = NodeGeocoder({
       provider: 'google',
       httpAdapter: 'https',
-      apiKey: 'AIzaSyDxwMeTbl6RTYI0J1jVjXyjUYJjbwilcgE',
+      apiKey: process.env.API_KEY,
       formatter: null
     });
 
@@ -170,7 +173,6 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   let hashedPassword = bcrypt.hashSync(req.body.password, salt);
   req.body.password = hashedPassword;
   postProfile(req).then(result => {
-    console.log(result);
     if (result.error == false) {
       req.flash('success', "Successfully registered. You may now login.");
       return res.redirect('/login');
@@ -322,17 +324,16 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
 router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
     req.body = req.user;
 
-    let email = await getMatches(req);
 
+    let email = await getMatches(req);
     if(email.error === true){ //if no user found
-      req.flash('error',"Sorry no one found");
       return res.render('platform/dashboard.hbs', {
-        user_name: "No User Found"
+        usersDoNotExist: true,
       });
     }
 
 
-  getProfile(email.message).then(user => {
+  await getProfile(email.message).then(user => {
     if (user.error == false) {
       return res.render('platform/dashboard.hbs', {
         user: user.message.message,
@@ -474,28 +475,71 @@ router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAut
   });
 });
 
-router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
   let email = req.body.email;
   let currentUserEmail = req.user.email;
+  let userChoice = req.body.choice;
   //add to seen listen
-  getProfile(currentUserEmail).then(results => {
+  await getProfile(currentUserEmail).then(results => {
       if (results.error == false) {
-          var seenList = JSON.parse(results.message.message.seen);
-          if(JSON.parse(results.message.message.seen) === null){
-            seenList = [];
-            seenList.push(email);
+          var seenList;// = results.message.message.seen;
+          var potentialMatchList;
+
+          if(!results.message.message.potentialMatchList){
+            potentialMatchList = [];
           }
           else{
-            seenList.push(email);
+            potentialMatchList = results.message.message.potentialMatchList;
           }
+
+          /*
+            Add user to potentialMatchList if selected Yes
+          */
+          if(userChoice === 'yes'){
+            potentialMatchList.push(email);
+          }
+
+          /*
+            Add user to seen list
+          */
+          if(!results.message.message.seen){
+            seenList = [];
+          }
+          else{
+            seenList = results.message.message.seen;
+          }
+            seenList.push(email);
+
           let con = mysql.createConnection(dbInfo);
-          con.query(`UPDATE profile SET seen='${JSON.stringify(seenList)}' WHERE email=${mysql.escape(currentUserEmail)};`, (error, results, fields) => {
+          con.query(`UPDATE profile SET seen='${JSON.stringify(seenList)}', potentialMatches='${JSON.stringify(potentialMatchList)}' WHERE email=${mysql.escape(currentUserEmail)};`, (error, results, fields) => {
             if (error) {
                   console.log(error.stack);
                   con.end();
                   return;
               }
 
+
+              if(userChoice === 'yes'){
+                  getProfile(email).then( seenResult => {
+                    if(seenResult.error == false){
+                      if(!seenResult.message.message.potentialMatchList || seenResult.message.message.potentialMatchList.length == 0 ){
+
+                      }
+                      else{
+                          if(seenResult.message.message.potentialMatchList.includes(currentUserEmail)){
+                            makeMatch(currentUserEmail,email);
+                          }
+                      }
+
+                    }
+                  }).catch(error => {
+                    console.log(error);
+                    req.flash('error', 'Error.');
+                    return res.redirect('/dashboard');
+                  });
+
+              }
+                con.end();
           });
           return res.redirect('/dashboard');
 
@@ -509,16 +553,28 @@ router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, (req, re
       return res.redirect('/dashboard');
     });
 
-
-  //if button is cliked yes -> add to potentialMatch list
-  //if other user already had 'yes' add to matchList
-
-
-  //res.redirect('/dashboard');
 });
 
 
-
-
+router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  getProfile(req.user.email).then(result => {
+    if (result.error == false) {
+      if (!result.message.message.matches || (Object.entries(result.message.message.matches).length === 0 && result.message.message.matches.constructor === Object)) {
+        return res.render('platform/matches.hbs', {
+          noMatches: true,
+        });
+      }
+      return res.render('platform/matches.hbs', {
+        matches: result.message.message.matches,
+      });
+    } else {
+      req.flash('error', 'Error.');
+      return res.redirect('/dashboard');
+    }
+  }).catch(error => {
+    req.flash('error', "Error.");
+    return res.redirect('/dashboard');
+  });
+});
 
 module.exports = router;

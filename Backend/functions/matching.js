@@ -40,17 +40,21 @@ export const getMatches = async (req) => {
         let list = [];
         let userInterests = JSON.parse(userProfile.interests);
         for (var i = 0; i < results.message.length; i++){
+          //need to make run async
           let current = JSON.parse(results.message[i].interests);
-          if (seenList.includes(results.message[i].email)){
-            continue;
+
+          if (seenList.includes(results.message[i].email) || results.message[i].email === req.body.email){
+            // continue;
           }
-          let count = 0;
-          for(var j = 0; j < userInterests.length; j++){
-            if(current.includes(userInterests[j])){
-              count++;
+          else{
+            let count = 0;
+            for(var j = 0; j < userInterests.length; j++){
+              if(!current.length == 0 && current.includes(userInterests[j])){
+                count++;
+              }
             }
+            list.push({user: results.message[i], count: count});
           }
-          list.push({user: results.message[i], count: count})
         }
         for (var i = 1; i < list.length; i++){ //sort list
           for (var j = i; j > 0; j--){
@@ -150,26 +154,3 @@ function patchBlockStore(req) {
     }
   });
 }
-
-// function patchSeenStore(userEmail,otherEmail) {
-//   return new Promise(resolve => {
-//     try {
-//
-//       var seenList = getProfile(userEmail).message.seen;
-//       console.log(seenList);
-//
-//       let con = mysql.createConnection(dbInfo);
-//       con.query(`UPDATE profile SET seen=${JSON.stringify(seenList)})} WHERE email=${mysql.escape(userEmail)};`, (error, resultsUpdate, fields) => {
-//         if (error) {
-//           console.log(error.stack);
-//           con.end();
-//           resolve({ error: true, message: error })
-//         }
-//         con.end();
-//         resolve({ error: false, message: resultsUpdate })
-//       });
-//     } catch (error) {
-//       resolve({ error: true, message: error })
-//     }
-//   });
-// }
