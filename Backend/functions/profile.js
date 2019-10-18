@@ -50,6 +50,9 @@ export const getProfile = async (email) => {
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
       results.message.pictures = JSON.parse(results.message.pictures);
+      results.message.seen = JSON.parse(results.message.seen);
+      results.message.potentialMatchList = JSON.parse(results.message.potentialMatches);
+      results.message.matches = JSON.parse(results.message.matches);
       return {error: false, message: results};
     }
     else {
@@ -59,6 +62,81 @@ export const getProfile = async (email) => {
     return error;
   }
 }
+
+export const makeMatch = async (currentUserEmail,email) => {
+  try {
+    if (!email || !currentUserEmail) {
+      throw new Error("Need email");
+    }
+
+    getProfile(email).then( firstResult => {
+          if(firstResult.error == false){
+              var firstMatchList;
+              if(!firstResult.message.message.matches){
+                firstMatchList = [];
+              }
+              else{
+                firstMatchList = firstResult.message.message.matches;
+              }
+              firstMatchList.push(currentUserEmail);
+              let con = mysql.createConnection(dbInfo);
+              con.query(`UPDATE profile SET matches='${JSON.stringify(firstMatchList)}' WHERE email=${mysql.escape(email)};`, (error, results, fields) => {
+                if (error) {
+                  console.log(error.stack);
+                  con.end();
+                  //resolve({ error: true, message: error })
+                }
+                else if (results) {
+                  con.end();
+                  //resolve({ error: false, message: "Added" })
+                }
+              });
+          }
+      }).catch(error => {
+        console.log(error);
+        req.flash('error', 'Error.');
+        return res.redirect('/dashboard');
+      });
+
+
+      getProfile(currentUserEmail).then( secondResult => {
+            if(secondResult.error == false){
+                var secondMatchList;
+
+                if(!secondResult.message.message.matches){
+                  secondMatchList = [];
+                }
+                else{
+                  secondMatchList = secondResult.message.message.matches;
+                }
+                secondMatchList.push(email);
+                let con = mysql.createConnection(dbInfo);
+                con.query(`UPDATE profile SET matches='${JSON.stringify(secondMatchList)}' WHERE email=${mysql.escape(currentUserEmail)};`, (error, results, fields) => {
+
+                  if (error) {
+                    console.log(error.stack);
+                    con.end();
+                  }
+                  else if (results) {
+                    con.end();
+
+                  }
+                });
+            }
+        }).catch(error => {
+          console.log(error);
+          req.flash('error', 'Error.');
+          return res.redirect('/dashboard');
+        });
+
+    } catch (error) {
+        return error;
+    }
+
+}
+
+
+
 
 export const getProfileIntern = async (req) => {
   try {
