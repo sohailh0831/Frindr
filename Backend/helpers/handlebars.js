@@ -4,7 +4,7 @@ var register = function(Handlebars) {
         return options.fn(this).replace(
             new RegExp(' value=\"' + value + '\"'),
             '$& selected="selected"');
-    },
+    }
 };
 
 if (Handlebars && typeof Handlebars.registerHelper === "function") {
