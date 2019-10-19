@@ -564,8 +564,17 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
           noMatches: true,
         });
       }
-      return res.render('platform/matches.hbs', {
-        matches: result.message.message.matches,
+      let con = mysql.createConnection(dbInfo);
+      con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
+        if (error) {
+          con.end();
+          console.log(error);
+          return res.send();
+        }
+        con.end();
+        return res.render('platform/matches.hbs', {
+          matches: results,
+        });
       });
     } else {
       req.flash('error', 'Error.');
