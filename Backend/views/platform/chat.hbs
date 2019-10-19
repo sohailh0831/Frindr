@@ -146,13 +146,13 @@
     function getMessages(){
         let sender = $("#currentUser").val();
         let recipient = $("#recipientUser").val();
-        let path = 'http://localhost:80/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
+        let path = 'https://frindr.tk/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
       $.get(path, (data) => {
         data.forEach(addMessages);
       })
     }
     function sendMessage(message){
-      $.post('http://localhost:80/matches/chat/messages', message)
+      $.post('https://frindr.tk/matches/chat/messages', message)
     }
 </script>
 {{> footer}}
