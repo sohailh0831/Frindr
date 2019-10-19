@@ -395,6 +395,61 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
   });
 });
 
+router.post('/profile/update', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  req.checkBody('name', 'Name field is required.').notEmpty();
+  req.checkBody('bio', 'Bio field is required.').notEmpty();
+  let formErrors = req.validationErrors();
+  if (formErrors) {
+    req.flash('error', formErrors[0].msg);
+    return res.redirect('/profile');
+  }
+  console.log(req.body);
+  patchName(req.body.name, req.user.email).then(result => {
+    if (result.error == false) {
+      patchBio(req.body.bio, req.user.email).then(resultBio => {
+        if (result.error == false) {
+          let con = mysql.createConnection(dbInfo);
+          if (req.body.notifications) {
+            con.query(`UPDATE profile SET notifications=1 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          } else {
+            con.query(`UPDATE profile SET notifications=0 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          }
+        }
+      }).catch(error => {
+        req.flash('error', "Error.");
+        return res.redirect('/profile');
+      });
+    } else {
+      req.flash('error', "Error.");
+      return res.redirect('/profile');
+    }
+  }).catch(error => {
+    console.log(error);
+    req.flash('error', "Error.");
+    return res.redirect('/profile');
+  });
+});
+
 router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   req.checkBody('currentPassword', 'Current Password field is required.').notEmpty();
   req.checkBody('newPassword2', 'New password does not match confirmation password field.').equals(req.body.newPassword);
