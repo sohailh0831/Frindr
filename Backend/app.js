@@ -16,13 +16,12 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 dotenv.config();
 
-
 const app = express();
 
 // Start HTTP Server
 const port = process.env.PORT;
 
- //comment lines out if testing locally
+//comment lines out if testing locally
 //Certificate
 var privateKey = 'test';
 var certificate = 'test';
@@ -76,7 +75,7 @@ app.use('/', userend);
 // Static folder
 app.use(express.static(path.join(__dirname, '/public')));
 
-app.listen(port, () =>{
+app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });
 
@@ -84,5 +83,15 @@ if(process.env.NODE_ENV === 'server'){
   const httpsServer = https.createServer(credentials, app);
   httpsServer.listen(process.env.SSLPORT, () => {
 	   console.log(`SSL started`);
-});
+  });
 }
+
+const socketApp = express();
+const socketServer = socketApp.listen(process.env.SOCKETPORT, () => {
+  console.log(`Socket server started on port ${process.env.SOCKETPORT}`);
+});
+
+const io = require("socket.io")(socketServer);
+io.on('connection', (socket) => {
+  console.log("New user connected");
+});
