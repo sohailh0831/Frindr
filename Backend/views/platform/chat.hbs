@@ -137,6 +137,8 @@
     function addMessages(message){
         if (message.sender === $("#currentUser").val()) {
             $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
+        } else if (!message.sender && !message.recipient && !message.message_content) {
+           $("#messages").prepend(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.currentUser}: ${message.sendMessageContent}</div></div>`);
         } else {
             $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-danger"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
         }
