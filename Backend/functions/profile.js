@@ -1,18 +1,18 @@
-//import {envSetup, envGet} from 'env.json'
-//envSetup(); // parse environment variables
 const express = require('express');
 const AuthenticationFunctions = require('../Authentication.js');
 const expressValidator = require('express-validator');
 const mysql = require('mysql');
 const router = express.Router();
 const flash = require('connect-flash');
+const dotenv = require('dotenv');
+dotenv.config();
 
 let dbInfo = {
   connectionLimit: 100,
-  host: '67.207.85.51',
-  user: 'frindrDB',
-  password: 'PurdueTesting1!',
-  database: 'frindr',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
   port: 3306,
   multipleStatements: true
 };
@@ -49,7 +49,10 @@ export const getProfile = async (email) => {
     if (results.error == false) {
       results.message.interests = JSON.parse(results.message.interests);
       results.message.characteristics = JSON.parse(results.message.characteristics);
-      results.message.location = JSON.parse(results.message.location);
+      results.message.pictures = JSON.parse(results.message.pictures);
+      results.message.seen = JSON.parse(results.message.seen);
+      results.message.potentialMatchList = JSON.parse(results.message.potentialMatches);
+      results.message.matches = JSON.parse(results.message.matches);
       return {error: false, message: results};
     }
     else {
@@ -60,7 +63,92 @@ export const getProfile = async (email) => {
   }
 }
 
-export const patchName = async (req) => {
+export const makeMatch = async (currentUserEmail,email) => {
+  try {
+    if (!email || !currentUserEmail) {
+      throw new Error("Need email");
+    }
+
+    getProfile(email).then( firstResult => {
+          if(firstResult.error == false){
+              var firstMatchList;
+              if(!firstResult.message.message.matches){
+                firstMatchList = [];
+              }
+              else{
+                firstMatchList = firstResult.message.message.matches;
+              }
+              firstMatchList.push(currentUserEmail);
+              let con = mysql.createConnection(dbInfo);
+              con.query(`UPDATE profile SET matches='${JSON.stringify(firstMatchList)}' WHERE email=${mysql.escape(email)};`, (error, results, fields) => {
+                if (error) {
+                  console.log(error.stack);
+                  con.end();
+                  //resolve({ error: true, message: error })
+                }
+                else if (results) {
+                  con.end();
+                  //resolve({ error: false, message: "Added" })
+                }
+              });
+          }
+      }).catch(error => {
+        console.log(error);
+        req.flash('error', 'Error.');
+        return res.redirect('/dashboard');
+      });
+
+
+      getProfile(currentUserEmail).then( secondResult => {
+            if(secondResult.error == false){
+                var secondMatchList;
+
+                if(!secondResult.message.message.matches){
+                  secondMatchList = [];
+                }
+                else{
+                  secondMatchList = secondResult.message.message.matches;
+                }
+                secondMatchList.push(email);
+                let con = mysql.createConnection(dbInfo);
+                con.query(`UPDATE profile SET matches='${JSON.stringify(secondMatchList)}' WHERE email=${mysql.escape(currentUserEmail)};`, (error, results, fields) => {
+
+                  if (error) {
+                    console.log(error.stack);
+                    con.end();
+                  }
+                  else if (results) {
+                    con.end();
+
+                  }
+                });
+            }
+        }).catch(error => {
+          console.log(error);
+          req.flash('error', 'Error.');
+          return res.redirect('/dashboard');
+        });
+
+    } catch (error) {
+        return error;
+    }
+
+}
+
+
+
+
+export const getProfileIntern = async (req) => {
+  try {
+
+    let results = await getProfileStore(req.body.email);
+    return results;
+    }catch(error){
+      return error
+    }
+}
+
+export const patchName = async (req, res) => {
   try {
     if (!req.user.email || !req.body.name) {
       throw new Error("Need email and name")
@@ -156,7 +244,7 @@ function postProfileStore(req) {
   else characteristics = JSON.stringify({});
   if (req.body.interests) interests = JSON.stringify(req.body.interests);
   else interests = JSON.stringify({});
-  let location = JSON.stringify({});
+  let location = req.body.location;
   return new Promise(resolve => {
     try {
       let res;

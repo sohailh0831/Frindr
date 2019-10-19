@@ -16,6 +16,11 @@ const mysql = require('mysql');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
 const geolib = require('geolib');
+var NodeGeocoder = require('node-geocoder');
+const dotenv = require('dotenv');
+dotenv.config();
+
+
 import {
   postProfile,
   patchBio,
@@ -24,8 +29,12 @@ import {
   patchName,
   getProfile,
   deleteProfile,
+  makeMatch
 } from "../functions/profile";
 
+import {
+  getMatches,
+} from "../functions/matching";
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
@@ -55,7 +64,8 @@ router.patch('/api/bio', patchBio);
 router.patch('/api/interests', patchInterests);
 router.patch('/api/characteristics', patchCharacteristics);
 
-
+/**Matching algorithm */
+router.get('/api/matches', getMatches)
 
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
@@ -68,19 +78,30 @@ router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) 
   });
 });
 
-router.get('/location', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
-  return res.render('platform/locationTestPage.hbs', {
-    error: req.flash('error'),
-    success: req.flash('success')
-  });
-});
-
 router.post('/login', AuthenticationFunctions.ensureNotAuthenticated, passport.authenticate('local', { successRedirect: '/dashboard', failureRedirect: '/login', failureFlash: true }), (req, res) => {
   res.redirect('/dashboard');
 });
 
 passport.use(new LocalStrategy({ passReqToCallback: true, },
-  function (req, username, password, done) {
+   async function (req, username, password, done) {
+    //location
+    var geocoder = NodeGeocoder({
+      provider: 'google',
+      httpAdapter: 'https',
+      apiKey: process.env.API_KEY,
+      formatter: null
+    });
+
+    var myLocationVariable = 'just initialing it here'
+     await geocoder.reverse({lat:req.body.latitude,lon:req.body.longitude})
+      .then(function(res) {
+        var city =  res[0].administrativeLevels.level2short.replace(/\s/g, '');
+        var state = res[0].administrativeLevels.level1short.replace(/\s/g, '');
+        myLocationVariable = city+state;
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
     let con = mysql.createConnection(dbInfo);
     con.query(`SELECT * FROM profile WHERE email=${mysql.escape(username)};`, (error, results, fields) => {
       if (error) {
@@ -97,15 +118,15 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
             email: results[0].email,
             name: results[0].name,
           };
-          // con.query(`UPDATE users SET latitude=${mysql.escape(req.body.latitude)}, longitude=${mysql.escape(req.body.longitude)} WHERE username=${mysql.escape(user.username)};`, (error, results, fields) => {
-          //     //need some error checking here
-
-          //     con.end();
-
-
-          // });
-          con.end();
-          return done(null, user);
+           con.query(`UPDATE profile SET location=${mysql.escape(myLocationVariable)} WHERE email=${mysql.escape(user.email)};`, (error, results, fields) => {
+                if (error) {
+                  console.log(error.stack);
+                  con.end();
+                  return;
+                }
+               con.end();
+               return done(null, user);
+           });
         } else {
           con.end();
           return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
@@ -152,7 +173,6 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   let hashedPassword = bcrypt.hashSync(req.body.password, salt);
   req.body.password = hashedPassword;
   postProfile(req).then(result => {
-    console.log(result);
     if (result.error == false) {
       req.flash('success', "Successfully registered. You may now login.");
       return res.redirect('/login');
@@ -301,9 +321,19 @@ router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNo
     });
 });
 
-router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  let email = req.user.email;
-  getProfile(email).then(user => {
+router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
+    req.body = req.user;
+
+
+    let email = await getMatches(req);
+    if(email.error === true){ //if no user found
+      return res.render('platform/dashboard.hbs', {
+        usersDoNotExist: true,
+      });
+    }
+
+
+  await getProfile(email.message).then(user => {
     if (user.error == false) {
       return res.render('platform/dashboard.hbs', {
         user: user.message.message,
@@ -318,6 +348,9 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
         pets: user.message.message.characteristics['pets'],
         religious: user.message.message.characteristics['religious'],
         user_interests: user.message.message.interests,
+        user_pictures: user.message.message.pictures,
+        user_name: user.message.message.name,
+        user_email: user.message.message.email
       });
     } else {
       req.flash('error', 'Error.');
@@ -328,13 +361,6 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, (req, res)
     req.flash('error', 'Error.');
     return res.redirect('/dashboard');
   });
-});
-
-
-router.get('/distance/:lat1/:lng1/:lat2/:lng2', function(req, res){
-  var distance = geolib.getDistance({latitude: req.params.lat1, longitude: req.params.lng1 }, {latitude: req.params.lat2, longitude: req.params.lng2});
-
-  res.send('Distance from ' + req.params.lat1 + ',' + req.params.lng1 + ' to ' + req.params.lat2 + ',' + req.params.lng2 + ' is ' + distance + ' km');
 });
 
 router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
@@ -356,6 +382,8 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         pets: result.message.message.characteristics['pets'],
         religious: result.message.message.characteristics['religious'],
         user_interests: result.message.message.interests,
+        user_pictures: result.message.message.pictures,
+        user_email: result.message.message.email
       });
     } else {
       req.flash('error', 'Error.');
@@ -447,6 +475,177 @@ router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAut
   });
 });
 
+router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
+  let email = req.body.email;
+  let currentUserEmail = req.user.email;
+  let userChoice = req.body.choice;
+  //add to seen listen
+  await getProfile(currentUserEmail).then(results => {
+      if (results.error == false) {
+          var seenList;// = results.message.message.seen;
+          var potentialMatchList;
 
+          if(!results.message.message.potentialMatchList){
+            potentialMatchList = [];
+          }
+          else{
+            potentialMatchList = results.message.message.potentialMatchList;
+          }
+
+          /*
+            Add user to potentialMatchList if selected Yes
+          */
+          if(userChoice === 'yes'){
+            potentialMatchList.push(email);
+          }
+
+          /*
+            Add user to seen list
+          */
+          if(!results.message.message.seen){
+            seenList = [];
+          }
+          else{
+            seenList = results.message.message.seen;
+          }
+            seenList.push(email);
+
+          let con = mysql.createConnection(dbInfo);
+          con.query(`UPDATE profile SET seen='${JSON.stringify(seenList)}', potentialMatches='${JSON.stringify(potentialMatchList)}' WHERE email=${mysql.escape(currentUserEmail)};`, (error, results, fields) => {
+            if (error) {
+                  console.log(error.stack);
+                  con.end();
+                  return;
+              }
+
+
+              if(userChoice === 'yes'){
+                  getProfile(email).then( seenResult => {
+                    if(seenResult.error == false){
+                      if(!seenResult.message.message.potentialMatchList || seenResult.message.message.potentialMatchList.length == 0 ){
+
+                      }
+                      else{
+                          if(seenResult.message.message.potentialMatchList.includes(currentUserEmail)){
+                            makeMatch(currentUserEmail,email);
+                          }
+                      }
+
+                    }
+                  }).catch(error => {
+                    console.log(error);
+                    req.flash('error', 'Error.');
+                    return res.redirect('/dashboard');
+                  });
+
+              }
+                con.end();
+          });
+          return res.redirect('/dashboard');
+
+      } else {
+        req.flash('error', 'Error.');
+        return res.redirect('/dashboard');
+      }
+    }).catch(error => {
+      console.log(error);
+      req.flash('error', 'Error.');
+      return res.redirect('/dashboard');
+    });
+
+});
+
+
+router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  getProfile(req.user.email).then(result => {
+    if (result.error == false) {
+      if (!result.message.message.matches || (Object.entries(result.message.message.matches).length === 0 && result.message.message.matches.constructor === Object)) {
+        return res.render('platform/matches.hbs', {
+          noMatches: true,
+        });
+      }
+      let con = mysql.createConnection(dbInfo);
+      con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
+        if (error) {
+          con.end();
+          console.log(error);
+          return res.send();
+        }
+        con.end();
+        return res.render('platform/matches.hbs', {
+          matches: results,
+          error: req.flash('error'),
+          success: req.flash('success'),
+        });
+      });
+    } else {
+      req.flash('error', 'Error.');
+      return res.redirect('/dashboard');
+    }
+  }).catch(error => {
+    req.flash('error', "Error.");
+    return res.redirect('/dashboard');
+  });
+});
+
+router.get(`/matches/chat/`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  getProfile(req.user.email).then(result => {
+    if (result.error == false) {
+      if (!result.message.message.matches || (Object.entries(result.message.message.matches).length === 0 && result.message.message.matches.constructor === Object)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      if (!result.message.message.matches.includes(req.query.recipient)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      let con = mysql.createConnection(dbInfo);
+      con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
+        if (error) {
+          con.end();
+          console.log(error);
+          return res.send();
+        }
+        con.end();
+
+        return res.render('platform/chat.hbs', {
+          currentUser: req.user.email,
+          recipientUser: req.query.recipient,
+        });
+      });
+    } else {
+      req.flash('error', 'Error.');
+      return res.redirect('/matches');
+    }
+  }).catch(error => {
+    req.flash('error', "Error.");
+    return res.redirect('/matches');
+  });
+});
+
+router.get(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE (sender=${mysql.escape(req.query.currentUser)} AND recipient=${mysql.escape(req.query.recipientUser)}) OR (sender=${mysql.escape(req.query.recipientUser)} AND recipient=${mysql.escape(req.query.currentUser)}) ORDER BY date DESC;`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      con.end();
+      return res.send();
+    }
+    return res.send(messages);
+  });
+});
+
+router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(uuidv4())}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
+    if (error) {
+      console.log(error);
+      con.end();
+      return res.send();
+    }
+    req.io.sockets.emit('message', req.body);
+    return res.sendStatus(200);
+  });
+});
 
 module.exports = router;
