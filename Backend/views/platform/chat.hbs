@@ -1,0 +1,158 @@
+{{> header}}
+<div class="m-grid__item m-grid__item--fluid m-wrapper">
+   <div class="m-content">
+      {{#if error}}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         </button>
+         <strong>Oh snap!</strong> {{error}}
+      </div>
+      {{/if}}
+      {{#if success}}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         </button>
+         <strong>Success!</strong> {{success}}
+      </div>
+      {{/if}}
+      {{#if noMatches}}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         </button>
+         <strong>Oh snap!</strong> You do not have any matches. Keep swiping!
+      </div>
+      {{/if}}
+      <div class="row">
+         <div class="col-lg-12">
+            <!--Begin::Portlet-->
+            <div class="m-portlet  m-portlet--full-height ">
+               <div class="m-portlet__head">
+                  <div class="m-portlet__head-caption">
+                     <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                           Chat with {{recipientUser}}
+                        </h3>
+                     </div>
+                  </div>
+                  <div class="m-portlet__head-tools">
+                     <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item m-dropdown m-dropdown--inline m-dropdown--arrow m-dropdown--align-right m-dropdown--align-push" m-dropdown-toggle="hover" aria-expanded="true">
+                           <a href="#" class="m-portlet__nav-link m-portlet__nav-link--icon m-portlet__nav-link--icon-xl m-dropdown__toggle">
+                           <i class="la la-ellipsis-h m--font-brand"></i>
+                           </a>
+                           <div class="m-dropdown__wrapper">
+                              <span class="m-dropdown__arrow m-dropdown__arrow--right m-dropdown__arrow--adjust"></span>
+                              <div class="m-dropdown__inner">
+                                 <div class="m-dropdown__body">
+                                    <div class="m-dropdown__content">
+                                       <ul class="m-nav">
+                                          <li class="m-nav__section m-nav__section--first">
+                                             <span class="m-nav__section-text">Actions</span>
+                                          </li>
+                                          <li class="m-nav__separator m-nav__separator--fit">
+                                          </li>
+                                          <li class="m-nav__item">
+                                             <a href="#" class="btn btn-outline-danger m-btn m-btn--pill m-btn--wide btn-sm">Unmatch</a>
+                                          </li>
+                                       </ul>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+               <div class="m-portlet__body">
+                  <div class="m-scrollable" data-scrollable="true" data-height="380" data-mobile-height="300">
+                     <!--Begin::Timeline 2 -->
+                     <div class="m-timeline-2">
+                        <div id="messages" class="m-timeline-2__items  m--padding-top-25 m--padding-bottom-30">
+                        </div>
+                     </div>
+                     <!--End::Timeline 2 -->
+                  </div>
+               </div>
+            </div>
+            <!--End::Portlet-->
+         </div>
+         <div class="col-lg-12">
+            <!--begin::Portlet-->
+            <div class="m-portlet">
+               <div class="m-portlet__head">
+                  <div class="m-portlet__head-caption">
+                     <div class="m-portlet__head-title">
+                        <span class="m-portlet__head-icon m--hide">
+                        <i class="la la-gear"></i>
+                        </span>
+                        <h3 class="m-portlet__head-text">
+                           Send a message
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <!--begin::Form-->
+               <div class="m-form">
+                  <div class="m-portlet__body">
+                     <div class="m-form__section m-form__section--first">
+                        <div class="form-group m-form__group">
+                           <label for="example_input_full_name">Message:</label>
+                           <input type="hidden"  name="currentUser" id="currentUser" value="{{currentUser}}">
+                           <input type="hidden"  name="recipientUser" id="recipientUser" value="{{recipientUser}}">
+                           <input type="text" class="form-control m-input" id="sendMessageContent" name="sendMessageContent" placeholder="Enter a message to send">
+                        </div>
+                     </div>
+                  </div>
+                  <div class="m-portlet__foot m-portlet__foot--fit">
+                     <div class="m-form__actions m-form__actions">
+                        <button id="send" class="btn btn-primary">Send</button>
+                     </div>
+                  </div>
+               </div>
+               <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+         </div>
+      </div>
+      <!--End::Main Portlet-->
+   </div>
+</div>
+
+
+<div id="junk">
+
+</div>
+<script>
+   var socket = io();
+    $(() => {
+        $("#send").click(()=>{
+            if ($("#sendMessageContent").val() !== '') {
+                sendMessage({currentUser: $("#currentUser").val(), recipientUser: $("#recipientUser").val(), sendMessageContent: $("#sendMessageContent").val()});
+            }
+            //sendMessage({currentUser: $("#currentUser").val(), recipientUser: $("#recipientUser").val(), sendMessageContent: $("#sendMessageContent").val()});
+        })
+        getMessages()
+    })
+    socket.on('message', addMessages)
+    function addMessages(message){
+        if (message.sender === $("#currentUser").val()) {
+            $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
+        } else if (!message.sender && !message.recipient && !message.message_content) {
+           $("#messages").prepend(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.currentUser}: ${message.sendMessageContent}</div></div>`);
+        } else {
+            $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-danger"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
+        }
+    }
+    function getMessages(){
+        let sender = $("#currentUser").val();
+        let recipient = $("#recipientUser").val();
+        let path = 'https://frindr.tk/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
+      $.get(path, (data) => {
+        data.forEach(addMessages);
+      })
+    }
+    function sendMessage(message){
+      $.post('https://frindr.tk/matches/chat/messages', message)
+    }
+</script>
+{{> footer}}

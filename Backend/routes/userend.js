@@ -395,6 +395,61 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
   });
 });
 
+router.post('/profile/update', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  req.checkBody('name', 'Name field is required.').notEmpty();
+  req.checkBody('bio', 'Bio field is required.').notEmpty();
+  let formErrors = req.validationErrors();
+  if (formErrors) {
+    req.flash('error', formErrors[0].msg);
+    return res.redirect('/profile');
+  }
+  console.log(req.body);
+  patchName(req.body.name, req.user.email).then(result => {
+    if (result.error == false) {
+      patchBio(req.body.bio, req.user.email).then(resultBio => {
+        if (result.error == false) {
+          let con = mysql.createConnection(dbInfo);
+          if (req.body.notifications) {
+            con.query(`UPDATE profile SET notifications=1 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          } else {
+            con.query(`UPDATE profile SET notifications=0 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          }
+        }
+      }).catch(error => {
+        req.flash('error', "Error.");
+        return res.redirect('/profile');
+      });
+    } else {
+      req.flash('error', "Error.");
+      return res.redirect('/profile');
+    }
+  }).catch(error => {
+    console.log(error);
+    req.flash('error', "Error.");
+    return res.redirect('/profile');
+  });
+});
+
 router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   req.checkBody('currentPassword', 'Current Password field is required.').notEmpty();
   req.checkBody('newPassword2', 'New password does not match confirmation password field.').equals(req.body.newPassword);
@@ -574,6 +629,8 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         con.end();
         return res.render('platform/matches.hbs', {
           matches: results,
+          error: req.flash('error'),
+          success: req.flash('success'),
         });
       });
     } else {
@@ -583,6 +640,66 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
   }).catch(error => {
     req.flash('error', "Error.");
     return res.redirect('/dashboard');
+  });
+});
+
+router.get(`/matches/chat/`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  getProfile(req.user.email).then(result => {
+    if (result.error == false) {
+      if (!result.message.message.matches || (Object.entries(result.message.message.matches).length === 0 && result.message.message.matches.constructor === Object)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      if (!result.message.message.matches.includes(req.query.recipient)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      let con = mysql.createConnection(dbInfo);
+      con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
+        if (error) {
+          con.end();
+          console.log(error);
+          return res.send();
+        }
+        con.end();
+
+        return res.render('platform/chat.hbs', {
+          currentUser: req.user.email,
+          recipientUser: req.query.recipient,
+        });
+      });
+    } else {
+      req.flash('error', 'Error.');
+      return res.redirect('/matches');
+    }
+  }).catch(error => {
+    req.flash('error', "Error.");
+    return res.redirect('/matches');
+  });
+});
+
+router.get(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE (sender=${mysql.escape(req.query.currentUser)} AND recipient=${mysql.escape(req.query.recipientUser)}) OR (sender=${mysql.escape(req.query.recipientUser)} AND recipient=${mysql.escape(req.query.currentUser)}) ORDER BY date DESC;`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      con.end();
+      return res.send();
+    }
+    return res.send(messages);
+  });
+});
+
+router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(uuidv4())}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
+    if (error) {
+      console.log(error);
+      con.end();
+      return res.send();
+    }
+    req.io.sockets.emit('message', req.body);
+    return res.sendStatus(200);
   });
 });
 
