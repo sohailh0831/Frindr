@@ -12,12 +12,15 @@ const session = require('express-session');
 var passport = require("passport");
 var request = require("request");
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const dotenv = require('dotenv');
 dotenv.config();
 
 
 const app = express();
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
 
 // Start HTTP Server
 const port = process.env.PORT;
@@ -70,13 +73,18 @@ app.use(expressValidator());
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+//socket io stuff
+app.use(function(req,res,next){
+  req.io = io;
+  next();
+});
+
 // Use routes
 app.use('/', userend);
 
-// Static folder
-app.use(express.static(path.join(__dirname, '/public')));
 
-app.listen(port, () =>{
+server.listen(port, () =>{
   console.log(`Server started on port ${port}`);
 });
 
