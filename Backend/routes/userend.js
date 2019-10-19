@@ -619,6 +619,11 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
           noMatches: true,
         });
       }
+      if (result.message.message.matches.length === 0) {
+        return res.render('platform/matches.hbs', {
+          noMatches: true,
+        });
+      }
       let con = mysql.createConnection(dbInfo);
       con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
         if (error) {
@@ -640,6 +645,82 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
   }).catch(error => {
     req.flash('error', "Error.");
     return res.redirect('/dashboard');
+  });
+});
+
+router.get(`/matches/unmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let unmatchEmail = req.query.user;
+  getProfile(req.user.email).then(currentUser => {
+    if (currentUser.error == false) {
+      if (!currentUser.message.message.matches || (Object.entries(currentUser.message.message.matches).length === 0 && currentUser.message.message.matches.constructor === Object)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/dashboard');
+      }
+      if (!currentUser.message.message.matches.includes(unmatchEmail)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      getProfile(unmatchEmail).then(unmatchEmailUser => {
+        if (unmatchEmailUser.error == false) {
+          if (!unmatchEmailUser.message.message.matches.includes(req.user.email)) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/matches');
+          }
+          _.remove(currentUser.message.message.matches, function(email) {
+            return email === unmatchEmail;
+          });
+          _.remove(unmatchEmailUser.message.message.matches, function(email) {
+            return email === req.user.email;
+          });
+          let con = mysql.createConnection(dbInfo);
+          con.query(`UPDATE profile SET matches='${JSON.stringify(currentUser.message.message.matches)}' WHERE email=${mysql.escape(req.user.email)};`, (error, updatingCurrentUserResult, fields) => {
+            if (error) {
+              console.log(error);
+              con.end();
+              req.flash('error', 'Error.');
+              return res.redirect('/matches');
+            }
+            con.query(`UPDATE profile SET matches='${JSON.stringify(unmatchEmailUser.message.message.matches)}' WHERE email=${mysql.escape(unmatchEmail)};`, (error, updatingCurrentUserResult, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', 'Error.');
+                return res.redirect('/matches');
+              }
+              con.query(`DELETE FROM messages WHERE (sender=${mysql.escape(req.user.email)} AND recipient=${mysql.escape(unmatchEmail)}) OR (sender=${mysql.escape(unmatchEmail)} AND recipient=${mysql.escape(req.user.email)});`, (error, deleteResults, fields) => {
+                if (error) {
+                  console.log(error);
+                  con.end();
+                  req.flash('error', 'Error.');
+                  return res.redirect('/matches');
+                }
+                con.end();
+                req.flash('success', 'Successfully unmatched.');
+                return res.redirect('/matches');
+              });
+            });
+          });
+        } else {
+          console.log('here1');
+          req.flash('error', 'Error.');
+          return res.redirect('/matches');
+        }
+      }).catch(error => {
+        console.log('here2');
+        console.log(error);
+        req.flash('error', "Error.");
+        return res.redirect('/matches');
+      });
+    } else {
+      console.log('here3');
+      req.flash('error', 'Error.');
+      return res.redirect('/matches');
+    }
+  }).catch(error => {
+    console.log('here4');
+    console.log(error);
+    req.flash('error', "Error.");
+    return res.redirect('/matches');
   });
 });
 
