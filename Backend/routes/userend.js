@@ -668,8 +668,16 @@ const upload = require("../functions/multer");
 
 router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
   //console.log('req.file :', req.file);
+
+  let result;
+  try {
+    result = await cloudinary.uploader.upload(req.file.path);
+  } catch (error) {
+
+    req.flash('error', 'Error: no photo selected.');
+    return res.redirect('/profile');
+  }
   
-  const result = await cloudinary.uploader.upload(req.file.path);
 
   var photo_url = result.secure_url;
   let email = req.user.email;
@@ -718,7 +726,6 @@ router.post('/profile/photo_delete' ,AuthenticationFunctions.ensureAuthenticated
           currentPhotoList.splice(index, 1);
         }
       
-      console.log(currentPhotoList);
       let con = mysql.createConnection(dbInfo);
       con.query(`UPDATE profile SET pictures='${JSON.stringify(currentPhotoList)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
         if (error) {
