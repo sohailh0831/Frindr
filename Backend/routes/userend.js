@@ -747,6 +747,8 @@ router.get(`/matches/chat/`, AuthenticationFunctions.ensureAuthenticated, (req, 
         return res.render('platform/chat.hbs', {
           currentUser: req.user.email,
           recipientUser: req.query.recipient,
+          error: req.flash('error'),
+          success: req.flash('success'),
         });
       });
     } else {
@@ -773,7 +775,7 @@ router.get(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated
 
 router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   let con = mysql.createConnection(dbInfo);
-  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(uuidv4())}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
+  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(req.body.id)}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
     if (error) {
       console.log(error);
       con.end();
@@ -783,5 +785,65 @@ router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticate
     return res.sendStatus(200);
   });
 });
+
+router.get(`/matches/chat/like/:id`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE id=${mysql.escape(req.params.id)};`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+    if (messages.length === 1) {
+      con.query(`UPDATE messages SET liked=1 WHERE id=${mysql.escape(req.params.id)};`, (error, updateResult, fields) => {
+        if (error) {
+          console.log(error);
+          req.flash('error', 'Error.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+        }
+          req.flash('success', 'Liked message.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+      });
+    } else {
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+  });
+});
+
+router.get(`/matches/chat/unlike/:id`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE id=${mysql.escape(req.params.id)};`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+    if (messages.length === 1) {
+      con.query(`UPDATE messages SET liked=0 WHERE id=${mysql.escape(req.params.id)};`, (error, updateResult, fields) => {
+        if (error) {
+          console.log(error);
+          req.flash('error', 'Error.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+        }
+          req.flash('success', 'Unliked message.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+      });
+    } else {
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+  });
+});
+
+
 
 module.exports = router;

@@ -124,10 +124,15 @@
 </div>
 <script>
    var socket = io();
+   function uuidv4() {
+      return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+         (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+      );
+   }
     $(() => {
         $("#send").click(()=>{
             if ($("#sendMessageContent").val() !== '') {
-                sendMessage({currentUser: $("#currentUser").val(), recipientUser: $("#recipientUser").val(), sendMessageContent: $("#sendMessageContent").val()});
+                sendMessage({currentUser: $("#currentUser").val(), recipientUser: $("#recipientUser").val(), sendMessageContent: $("#sendMessageContent").val(), id: uuidv4()});
             }
         })
         getMessages()
@@ -136,25 +141,31 @@
     function addMessages(message){
        if (((message.sender === $("#currentUser").val() || message.sender === $("#recipientUser").val()) && (message.recipient === $("#currentUser").val() || message.recipient === $("#recipientUser").val())) || (message.currentUser === $("#currentUser").val() && message.recipientUser == $("#recipientUser").val()) || (message.currentUser === $("#recipientUser").val() && message.recipientUser == $("#currentUser").val())) {
           if (message.sender === $("#currentUser").val()) {
-            $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
-        } else if (!message.sender && !message.recipient && !message.message_content) {
-           $("#messages").prepend(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.currentUser}: ${message.sendMessageContent}</div></div>`);
+            $("#messages").append(`<div class="m-timeline-2__item"><span class="m-timeline-2__item-time">10:00</span><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div id="${message.id}" class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
+        } else if (!message.sender && !message.recipient && !message.message_content && message.currentUser !== $("#currentUser").val()) {
+           $("#messages").prepend(`<div class="m-timeline-2__item"><span class="m-timeline-2__item-time">10:00</span><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div id="${message.id}" class="m-timeline-2__item-text  m--padding-top-5">${message.currentUser}: ${message.sendMessageContent} <a href="/matches/chat/like/${message.id}"><b>Like</b></a></div></div>`);
+        } else if (!message.sender && !message.recipient && !message.message_content && message.currentUser === $("#currentUser").val()) {
+           $("#messages").prepend(`<div class="m-timeline-2__item"><span class="m-timeline-2__item-time">10:00</span><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div id="${message.id}" class="m-timeline-2__item-text  m--padding-top-5">${message.currentUser}: ${message.sendMessageContent}</div></div>`);
+        } else if (message.liked === 0) {
+            $("#messages").append(`<div class="m-timeline-2__item"><span class="m-timeline-2__item-time">10:00</span><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-danger"></i> </div> <div id="${message.id}" class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content} <a href="/matches/chat/like/${message.id}"><b>Like</b></a></div></div>`);
         } else {
-            $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-danger"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
+           $("#messages").append(`<div class="m-timeline-2__item"><span class="m-timeline-2__item-time">10:00</span><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-danger"></i> </div> <div id="${message.id}" class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content} <a href="/matches/chat/unlike/${message.id}"><b>Unlike</b></a></div></div>`);
         }
        }
-        
     }
     function getMessages(){
         let sender = $("#currentUser").val();
         let recipient = $("#recipientUser").val();
         let path = 'https://frindr.tk/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
+        //let path = 'http://localhost:80/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
       $.get(path, (data) => {
         data.forEach(addMessages);
       })
     }
     function sendMessage(message){
       $.post('https://frindr.tk/matches/chat/messages', message)
+      //$.post('http://localhost:80/matches/chat/messages', message)
     }
+
 </script>
 {{> footer}}
