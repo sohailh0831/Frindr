@@ -611,12 +611,18 @@ router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.en
         if (error) {
           console.log(error.stack);
           con.end();
-          return;
+          req.flash('error', 'Error uploading photo.');
+          return res.redirect('/profile');
         }
         con.end();
+        req.flash('success', 'Successfully uploaded photo.');
+        return res.redirect('/profile');
       });
+    }).catch(error => {
+      console.log(error);
+      req.flash('error', 'Error uploading photo.');
+      return res.redirect('/profile');
     });
-  return res.redirect('/profile');
 });
 
 
@@ -641,16 +647,22 @@ router.post('/profile/photo_delete' ,AuthenticationFunctions.ensureAuthenticated
         if (error) {
           console.log(error.stack);
           con.end();
-          return;
+          req.flash('error', 'Error deleting photo.');
+          return res.redirect('/profile');
         }
         con.end();
+        req.flash('success', 'Successfully deleted photo.');
+        return res.redirect('/profile');
       });
     }
+    }).catch(error => {
+      console.log(error);
+      req.flash('error', 'Error deleting photo.');
+      return res.redirect('/profile');
     });
     let file_to_delete = image_to_delete.substring(image_to_delete.lastIndexOf("/") + 1,
                                                     image_to_delete.lastIndexOf("."));
   cloudinary.uploader.destroy(file_to_delete, function(result) { });
-  return res.redirect('/profile');
 });
 
 module.exports = router;

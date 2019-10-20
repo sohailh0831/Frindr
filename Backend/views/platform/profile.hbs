@@ -330,7 +330,12 @@
 					<!--end::Form-->
 				</div>
 
-				<!--begin::Portlet-->
+				<!--end::Portlet-->
+			</div>
+
+			<div class="col-lg-4">
+
+<!--begin::Portlet-->
 				<div class="m-portlet">
 					<div class="m-portlet__head">
 						<div class="m-portlet__head-caption">
@@ -354,11 +359,13 @@
 									{{else}}
 										<div class="item">
 									{{/if}} 
-										<img src="{{this}}" alt="user picture" style="width:320px;height:329px;">
-										<form class="m-form m-form--fit m-form--label-align-right" action="/profile/photo_delete" method="post">
-										<button name="subject" type="submit" value="{{this}}">Delete this photo</button>
-										{{!-- <button type="submit" class="btn btn-success">Poop in duck</button> --}}
-										</form>
+										<div style="text-align:center;">
+											<img src="{{this}}" alt="user picture" style="width:320px;height:329px;">
+											<form class="m-form m-form--fit m-form--label-align-right" action="/profile/photo_delete" method="post">
+											<button name="subject" type="submit" value="{{this}}">Delete this photo</button>
+											</form>
+										</div>
+
 									</div>
 								{{/each}}
 							{{else}}
@@ -382,7 +389,7 @@
 					<form class="m-form m-form--fit m-form--label-align-right" action="/profile/photo" method="post" enctype='multipart/form-data'>
 						<div class="m-portlet__foot m-portlet__foot--fit">
 							<label>	Select your photo:
-							<input type="file" name="image"></label>
+							<input type="file" name="image" ></label>
 							<div class="m-form__actions">
 								<button type="submit" class="btn btn-success">Submit</button>
 								<button type="reset" class="btn btn-secondary">Cancel</button>
@@ -392,8 +399,6 @@
 
 					<!--end::Form-->
 				</div>
-
-				<!--end::Portlet-->
 			</div>
 
 		</div>
