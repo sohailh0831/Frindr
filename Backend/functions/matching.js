@@ -9,15 +9,15 @@ import {
   } from "./profile";
 
 
-let dbInfo = {
-  connectionLimit: 100,
-  host: '67.207.85.51',
-  user: 'frindrDB',
-  password: 'PurdueTesting1!',
-  database: 'frindr',
-  port: 3306,
-  multipleStatements: true
-};
+  let dbInfo = {
+    connectionLimit: 100,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    port: 3306,
+    multipleStatements: true
+  };
 
 export const getMatches = async (req) => {
     try {
@@ -56,6 +56,7 @@ export const getMatches = async (req) => {
             list.push({user: results.message[i], count: count});
           }
         }
+        console.log(list)
         for (var i = 1; i < list.length; i++){ //sort list
           for (var j = i; j > 0; j--){
             if(list[j].count < list[j-1].count){
@@ -65,8 +66,8 @@ export const getMatches = async (req) => {
             }
           }
         }
-        // console.log(list);
-        return {message: list[0].user.email, count: list[0].count, error: false};
+         console.log(list);
+        return {message: list[list.length-1].user.email, count: list[list.length-1].count, error: false};
       } catch (error) {
         return { error: true, message: error.stack };
       }
