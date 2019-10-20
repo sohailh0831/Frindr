@@ -189,7 +189,7 @@ export const patchInterests = async (req) => {
     }
     let results = await patchInterestsStore(req);
     if (results.error == false) {
-      return {results: JSON.parse(results.interests)};
+      return {results: results, error: false};
     }
     else {
       return results;
@@ -236,6 +236,9 @@ function postProfileStore(req) {
   let bio;
   let interests;
   let characteristics;
+  let password;
+  if (req.body.password) password = req.body.password;
+  else password = '111';
   if (req.body.name) name = req.body.name;
   else name = '';
   if (req.body.bio) bio = req.body.bio;
@@ -249,7 +252,7 @@ function postProfileStore(req) {
     try {
       let res;
       let con = mysql.createConnection(dbInfo);
-      res = con.query(`INSERT INTO profile (email, password, name, bio, interests, location, characteristics) VALUES (${mysql.escape(email)}, ${mysql.escape(req.body.password)}, ${mysql.escape(name)}, ${mysql.escape(bio)}, '${interests}', '${location}', '${characteristics}');`, (error, results, fields) => {
+      res = con.query(`INSERT INTO profile (email, password, name, bio, interests, location, characteristics) VALUES (${mysql.escape(email)}, ${mysql.escape(password)}, ${mysql.escape(name)}, ${mysql.escape(bio)}, '${interests}', '${location}', '${characteristics}');`, (error, results, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
