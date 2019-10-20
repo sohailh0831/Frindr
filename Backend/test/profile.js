@@ -71,19 +71,12 @@ describe("Profile",  async () => {
     describe("/name", () => {
         describe("PATCH", () => {
             it('It should return an error without name', async () =>{  
-                let req = { user: {
-                    email: "test1@gmail.com"                   
-                }}
-                let result = await patchName(req);
+                let result = await patchName();
                 result.should.be.a('object');
                 result.error.should.eql(true);
             });
             it('It should return 200', async () =>{     
-                let req = { user: {
-                    email: "test1@gmail.com"},
-                    body: {name: "updated"}                
-                };
-                let result = await patchName(req);
+                let result = await patchName("updated", "test1@gmail.com");
                 result.should.be.a('object');
                 result.error.should.eql(false)
             });
@@ -99,19 +92,12 @@ describe("Profile",  async () => {
     describe("/bio", () => {
         describe("PATCH", () => {
             it('It should return an error without bio', async () =>{  
-                let req = { user: {
-                    email: "test1@gmail.com"                   
-                }}
-                let result = await patchBio(req);
+                let result = await patchBio('');
                 result.should.be.a('object');
                 result.error.should.eql(true);
             });
             it('It should return 200', async () =>{     
-                let req = { user: {
-                    email: "test1@gmail.com"},
-                    body: {bio: "updated"}                
-                };
-                let result = await patchBio(req);
+                let result = await patchBio("updated", "test1@gmail.com");
                 result.should.be.a('object');
                 result.error.should.eql(false)
             });
