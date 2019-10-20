@@ -129,30 +129,33 @@
             if ($("#sendMessageContent").val() !== '') {
                 sendMessage({currentUser: $("#currentUser").val(), recipientUser: $("#recipientUser").val(), sendMessageContent: $("#sendMessageContent").val()});
             }
-            //sendMessage({currentUser: $("#currentUser").val(), recipientUser: $("#recipientUser").val(), sendMessageContent: $("#sendMessageContent").val()});
         })
         getMessages()
     })
     socket.on('message', addMessages)
     function addMessages(message){
-        if (message.sender === $("#currentUser").val()) {
+       if (((message.sender === $("#currentUser").val() || message.sender === $("#recipientUser").val()) && (message.recipient === $("#currentUser").val() || message.recipient === $("#recipientUser").val())) || (message.currentUser === $("#currentUser").val() && message.recipientUser == $("#recipientUser").val()) || (message.currentUser === $("#recipientUser").val() && message.recipientUser == $("#currentUser").val())) {
+          if (message.sender === $("#currentUser").val()) {
             $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
         } else if (!message.sender && !message.recipient && !message.message_content) {
            $("#messages").prepend(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-success"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.currentUser}: ${message.sendMessageContent}</div></div>`);
         } else {
             $("#messages").append(`<div class="m-timeline-2__item"><div class="m-timeline-2__item-cricle"> <i class="fa fa-genderless m--font-danger"></i> </div> <div class="m-timeline-2__item-text  m--padding-top-5">${message.sender}: ${message.message_content}</div></div>`);
         }
+       }
+        
     }
     function getMessages(){
         let sender = $("#currentUser").val();
         let recipient = $("#recipientUser").val();
-        let path = 'https://frindr.tk/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
+        //let path = 'https://frindr.tk/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
+        let path = 'http://localhost:80/matches/chat/messages/?currentUser=' + sender + '&recipientUser=' + recipient;
       $.get(path, (data) => {
         data.forEach(addMessages);
       })
     }
     function sendMessage(message){
-      $.post('https://frindr.tk/matches/chat/messages', message)
+      $.post('http://localhost:80/matches/chat/messages', message)
     }
 </script>
 {{> footer}}
