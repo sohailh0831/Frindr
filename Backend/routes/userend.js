@@ -18,8 +18,16 @@ const nodemailer = require('nodemailer');
 const geolib = require('geolib');
 var NodeGeocoder = require('node-geocoder');
 const dotenv = require('dotenv');
-dotenv.config();
+var cloudinary = require('cloudinary').v2;
+const multer = require('multer'); // file storing middleware
+cloudinary.config({ 
+  cloud_name: 'frindr', 
+  api_key: '977515228941379', 
+  api_secret: '06MnR5rWItBmatsb9RQWRu_TjQE' 
+});
 
+
+dotenv.config();
 
 import {
   postProfile,
@@ -70,8 +78,6 @@ router.get('/api/matches', getMatches)
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
 });
-
-
 
 
 router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
@@ -338,6 +344,7 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
 
   await getProfile(email.message).then(user => {
     if (user.error == false) {
+      console.log();
       return res.render('platform/dashboard.hbs', {
         user: user.message.message,
         error: req.flash('error'),
@@ -578,6 +585,72 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
     req.flash('error', "Error.");
     return res.redirect('/dashboard');
   });
+});
+
+const upload = require("../functions/multer");
+
+router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
+  //console.log('req.file :', req.file);
+  
+  const result = await cloudinary.uploader.upload(req.file.path);
+
+  var photo_url = result.secure_url;
+  let email = req.user.email;
+  //get the current users current photo array, may be updated late to be more efficient
+  getProfile(email).then( currentValues => {
+      var currentPhotoList;
+      if(!currentValues.message.message.pictures){
+        currentPhotoList = [];
+      }
+      else{
+        currentPhotoList = currentValues.message.message.pictures;
+      }
+      currentPhotoList.push(photo_url);
+      let con = mysql.createConnection(dbInfo);
+      con.query(`UPDATE profile SET pictures='${JSON.stringify(currentPhotoList)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+        if (error) {
+          console.log(error.stack);
+          con.end();
+          return;
+        }
+        con.end();
+      });
+    });
+  return res.redirect('/profile');
+});
+
+
+router.post('/profile/photo_delete' ,AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
+  //console.log(req.body.subject);
+  let image_to_delete = req.body.subject;
+  let email = req.user.email;
+  //get the current users current photo array, may be updated late to be more efficient
+  getProfile(email).then( currentValues => {
+      var currentPhotoList;
+      currentPhotoList = currentValues.message.message.pictures;
+
+      if(currentPhotoList){
+        var index = currentPhotoList.indexOf(image_to_delete);
+        if (index > -1) {
+          currentPhotoList.splice(index, 1);
+        }
+      
+      console.log(currentPhotoList);
+      let con = mysql.createConnection(dbInfo);
+      con.query(`UPDATE profile SET pictures='${JSON.stringify(currentPhotoList)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+        if (error) {
+          console.log(error.stack);
+          con.end();
+          return;
+        }
+        con.end();
+      });
+    }
+    });
+    let file_to_delete = image_to_delete.substring(image_to_delete.lastIndexOf("/") + 1,
+                                                    image_to_delete.lastIndexOf("."));
+  cloudinary.uploader.destroy(file_to_delete, function(result) { });
+  return res.redirect('/profile');
 });
 
 module.exports = router;
