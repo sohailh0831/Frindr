@@ -44,10 +44,10 @@ let transporter = nodemailer.createTransport({
 });
 let dbInfo = {
   connectionLimit: 100,
-  host: '67.207.85.51',
-  user: 'frindrDB',
-  password: 'PurdueTesting1!',
-  database: 'frindr',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
   port: 3306,
   multipleStatements: true
 };
