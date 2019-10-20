@@ -148,12 +148,12 @@ export const getProfileIntern = async (req) => {
     }
 }
 
-export const patchName = async (req, res) => {
+export const patchName = async (name, email) => {
   try {
-    if (!req.user.email || !req.body.name) {
+    if (!email || !name) {
       throw new Error("Need email and name")
     }
-    let results = await patchNameStore(req);
+    let results = await patchNameStore(name, email);
     if (results.error == false) {
       return results;
     }
@@ -165,12 +165,12 @@ export const patchName = async (req, res) => {
   }
 }
 
-export const patchBio = async (req) => {
+export const patchBio = async (bio, email) => {
   try {
-    if (!req.user.email || !req.body.bio) {
+    if (!email || !bio) {
       throw new Error("Need email and bio")
     }
-    let results = await patchBioStore(req);
+    let results = await patchBioStore(bio, email);
     if (results.error == false) {
       return results;
     }
@@ -297,9 +297,7 @@ function getProfileStore(email) {
   });
 }
 
-function patchNameStore(req) {
-  let email = req.user.email;
-  let name = req.body.name;
+function patchNameStore(name, email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -318,9 +316,7 @@ function patchNameStore(req) {
   });
 }
 
-function patchBioStore(req) {
-  let email = req.user.email;
-  let bio = req.body.bio;
+function patchBioStore(bio, email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
