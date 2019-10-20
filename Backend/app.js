@@ -32,6 +32,9 @@ var certificate = 'test';
 var ca = 'test';
 var credentials = 'test';
 
+var server;
+var io;
+
 if(process.env.NODE_ENV === 'server'){
   privateKey = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/privkey.pem', 'utf8');
   certificate = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/cert.pem', 'utf8');
@@ -41,6 +44,11 @@ if(process.env.NODE_ENV === 'server'){
   	cert: certificate,
   	ca: ca
   };
+  server = https.createServer(credentials, app);
+  io = require('socket.io').listen(server);
+} else {
+  server = http.createServer(app);
+  io = require('socket.io').listen(server);
 }
 
 app.engine('.hbs', exphbs({
@@ -83,14 +91,12 @@ app.use(function(req,res,next){
 // Use routes
 app.use('/', userend);
 
-
-server.listen(port, () =>{
-  console.log(`Server started on port ${port}`);
-});
-
 if(process.env.NODE_ENV === 'server'){
-  const httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(process.env.SSLPORT, () => {
+  server.listen(process.env.SSLPORT, () => {
 	   console.log(`SSL started`);
 });
+} else {
+  server.listen(port, () =>{
+    console.log(`Server started on port ${port}`);
+  });
 }
