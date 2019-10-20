@@ -148,12 +148,12 @@ export const getProfileIntern = async (req) => {
     }
 }
 
-export const patchName = async (req, res) => {
+export const patchName = async (name, email) => {
   try {
-    if (!req.user.email || !req.body.name) {
+    if (!email || !name) {
       throw new Error("Need email and name")
     }
-    let results = await patchNameStore(req);
+    let results = await patchNameStore(name, email);
     if (results.error == false) {
       return results;
     }
@@ -165,12 +165,12 @@ export const patchName = async (req, res) => {
   }
 }
 
-export const patchBio = async (req) => {
+export const patchBio = async (bio, email) => {
   try {
-    if (!req.user.email || !req.body.bio) {
+    if (!email || !bio) {
       throw new Error("Need email and bio")
     }
-    let results = await patchBioStore(req);
+    let results = await patchBioStore(bio, email);
     if (results.error == false) {
       return results;
     }
@@ -189,7 +189,7 @@ export const patchInterests = async (req) => {
     }
     let results = await patchInterestsStore(req);
     if (results.error == false) {
-      return {results: JSON.parse(results.interests)};
+      return {results: results, error: false};
     }
     else {
       return results;
@@ -236,6 +236,9 @@ function postProfileStore(req) {
   let bio;
   let interests;
   let characteristics;
+  let password;
+  if (req.body.password) password = req.body.password;
+  else password = '111';
   if (req.body.name) name = req.body.name;
   else name = '';
   if (req.body.bio) bio = req.body.bio;
@@ -249,7 +252,7 @@ function postProfileStore(req) {
     try {
       let res;
       let con = mysql.createConnection(dbInfo);
-      res = con.query(`INSERT INTO profile (email, password, name, bio, interests, location, characteristics) VALUES (${mysql.escape(email)}, ${mysql.escape(req.body.password)}, ${mysql.escape(name)}, ${mysql.escape(bio)}, '${interests}', '${location}', '${characteristics}');`, (error, results, fields) => {
+      res = con.query(`INSERT INTO profile (email, password, name, bio, interests, location, characteristics) VALUES (${mysql.escape(email)}, ${mysql.escape(password)}, ${mysql.escape(name)}, ${mysql.escape(bio)}, '${interests}', '${location}', '${characteristics}');`, (error, results, fields) => {
         if (error) {
           console.log(error.stack);
           con.end();
@@ -297,9 +300,7 @@ function getProfileStore(email) {
   });
 }
 
-function patchNameStore(req) {
-  let email = req.user.email;
-  let name = req.body.name;
+function patchNameStore(name, email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);
@@ -318,9 +319,7 @@ function patchNameStore(req) {
   });
 }
 
-function patchBioStore(req) {
-  let email = req.user.email;
-  let bio = req.body.bio;
+function patchBioStore(bio, email) {
   return new Promise(resolve => {
     try {
       let con = mysql.createConnection(dbInfo);

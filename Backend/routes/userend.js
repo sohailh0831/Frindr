@@ -44,10 +44,10 @@ let transporter = nodemailer.createTransport({
 });
 let dbInfo = {
   connectionLimit: 100,
-  host: '67.207.85.51',
-  user: 'frindrDB',
-  password: 'PurdueTesting1!',
-  database: 'frindr',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
   port: 3306,
   multipleStatements: true
 };
@@ -395,6 +395,61 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
   });
 });
 
+router.post('/profile/update', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  req.checkBody('name', 'Name field is required.').notEmpty();
+  req.checkBody('bio', 'Bio field is required.').notEmpty();
+  let formErrors = req.validationErrors();
+  if (formErrors) {
+    req.flash('error', formErrors[0].msg);
+    return res.redirect('/profile');
+  }
+  console.log(req.body);
+  patchName(req.body.name, req.user.email).then(result => {
+    if (result.error == false) {
+      patchBio(req.body.bio, req.user.email).then(resultBio => {
+        if (result.error == false) {
+          let con = mysql.createConnection(dbInfo);
+          if (req.body.notifications) {
+            con.query(`UPDATE profile SET notifications=1 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          } else {
+            con.query(`UPDATE profile SET notifications=0 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          }
+        }
+      }).catch(error => {
+        req.flash('error', "Error.");
+        return res.redirect('/profile');
+      });
+    } else {
+      req.flash('error', "Error.");
+      return res.redirect('/profile');
+    }
+  }).catch(error => {
+    console.log(error);
+    req.flash('error', "Error.");
+    return res.redirect('/profile');
+  });
+});
+
 router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   req.checkBody('currentPassword', 'Current Password field is required.').notEmpty();
   req.checkBody('newPassword2', 'New password does not match confirmation password field.').equals(req.body.newPassword);
@@ -564,6 +619,11 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
           noMatches: true,
         });
       }
+      if (result.message.message.matches.length === 0) {
+        return res.render('platform/matches.hbs', {
+          noMatches: true,
+        });
+      }
       let con = mysql.createConnection(dbInfo);
       con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
         if (error) {
@@ -585,6 +645,82 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
   }).catch(error => {
     req.flash('error', "Error.");
     return res.redirect('/dashboard');
+  });
+});
+
+router.get(`/matches/unmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let unmatchEmail = req.query.user;
+  getProfile(req.user.email).then(currentUser => {
+    if (currentUser.error == false) {
+      if (!currentUser.message.message.matches || (Object.entries(currentUser.message.message.matches).length === 0 && currentUser.message.message.matches.constructor === Object)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/dashboard');
+      }
+      if (!currentUser.message.message.matches.includes(unmatchEmail)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      getProfile(unmatchEmail).then(unmatchEmailUser => {
+        if (unmatchEmailUser.error == false) {
+          if (!unmatchEmailUser.message.message.matches.includes(req.user.email)) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/matches');
+          }
+          _.remove(currentUser.message.message.matches, function(email) {
+            return email === unmatchEmail;
+          });
+          _.remove(unmatchEmailUser.message.message.matches, function(email) {
+            return email === req.user.email;
+          });
+          let con = mysql.createConnection(dbInfo);
+          con.query(`UPDATE profile SET matches='${JSON.stringify(currentUser.message.message.matches)}' WHERE email=${mysql.escape(req.user.email)};`, (error, updatingCurrentUserResult, fields) => {
+            if (error) {
+              console.log(error);
+              con.end();
+              req.flash('error', 'Error.');
+              return res.redirect('/matches');
+            }
+            con.query(`UPDATE profile SET matches='${JSON.stringify(unmatchEmailUser.message.message.matches)}' WHERE email=${mysql.escape(unmatchEmail)};`, (error, updatingCurrentUserResult, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', 'Error.');
+                return res.redirect('/matches');
+              }
+              con.query(`DELETE FROM messages WHERE (sender=${mysql.escape(req.user.email)} AND recipient=${mysql.escape(unmatchEmail)}) OR (sender=${mysql.escape(unmatchEmail)} AND recipient=${mysql.escape(req.user.email)});`, (error, deleteResults, fields) => {
+                if (error) {
+                  console.log(error);
+                  con.end();
+                  req.flash('error', 'Error.');
+                  return res.redirect('/matches');
+                }
+                con.end();
+                req.flash('success', 'Successfully unmatched.');
+                return res.redirect('/matches');
+              });
+            });
+          });
+        } else {
+          console.log('here1');
+          req.flash('error', 'Error.');
+          return res.redirect('/matches');
+        }
+      }).catch(error => {
+        console.log('here2');
+        console.log(error);
+        req.flash('error', "Error.");
+        return res.redirect('/matches');
+      });
+    } else {
+      console.log('here3');
+      req.flash('error', 'Error.');
+      return res.redirect('/matches');
+    }
+  }).catch(error => {
+    console.log('here4');
+    console.log(error);
+    req.flash('error', "Error.");
+    return res.redirect('/matches');
   });
 });
 
