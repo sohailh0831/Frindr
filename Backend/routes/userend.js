@@ -667,7 +667,6 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
 const upload = require("../functions/multer");
 
 router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
-  //console.log('req.file :', req.file);
 
   let result;
   try {
