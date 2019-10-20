@@ -2,10 +2,16 @@ require('chromedriver');
 const assert = require('assert');
 const { Builder, Key, By, until } = require('selenium-webdriver');
 
-describe('Login page', function () {
+describe('Login page tests', function () {
    let driver;
    before(async function () {
       driver = await new Builder().forBrowser('chrome').build();
+   });
+
+   it('Check page loads to login when not signed in', async function () {
+      await driver.get('https://frindr.tk');
+      let currURL = await driver.getCurrentUrl();
+      assert.equal(currURL, 'https://frindr.tk/login');
    });
 
    it('Check page title', async function () {
