@@ -10,8 +10,8 @@ describe('Dashboard tests', function () {
 
    it('Verify move to dashboard after correct login', async function () {
       await driver.get('https://frindr.tk');
-      await driver.findElement(By.name('username')).sendKeys('jj@legitemail.com');
-      await driver.findElement(By.name('password')).sendKeys('jimjimpass');
+      await driver.findElement(By.name('username')).sendKeys('test@test.test');
+      await driver.findElement(By.name('password')).sendKeys('testpassword');
       await driver.findElement(By.id('m_login_signin_submit')).click();
       let currURL = await driver.getCurrentUrl();
       assert.equal(currURL, 'https://frindr.tk/dashboard');

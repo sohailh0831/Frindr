@@ -4,9 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "mocha --require babel-core/register --recursive test",
     "start": "babel-node app.js",
-    "selenium": "mocha --timeout 10000 --recursive seleniumTests"
+    "chai": "mocha --require babel-core/register --recursive test",
+    "selenium": "mocha --timeout 10000 --recursive seleniumTests",
+    "test": "npm run selenium && npm run chai"
   },
   "repository": {
     "type": "git",
