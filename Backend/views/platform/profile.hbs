@@ -45,7 +45,7 @@
 					</div>
 
 					<!--begin::Form-->
-					<form class="m-form">
+					<form class="m-form" method="post" action="/profile/update">
 						<div class="m-portlet__body">
 							<div class="m-form__section m-form__section--first">
 								<div class="form-group m-form__group">
@@ -53,17 +53,28 @@
 									<input type="email" disabled="" class="form-control m-input" value="{{user.email}}">
 								</div>
 								<div class="form-group m-form__group">
-									<label>First Name:</label>
-									<input type="text" class="form-control m-input" value="{{user.name}}" disabled="">
+									<label>Name:</label>
+									<input type="text" class="form-control m-input" name="name" maxlength="240" required="" value="{{user.name}}">
 								</div>
 								<div class="form-group m-form__group">
 									<label>Location:</label>
 									<input type="text" class="form-control m-input" value="{{user.location}}" disabled="">
 								</div>
+								<div class="form-group m-form__group">
+									<label>Bio:</label>
+									<input type="text" class="form-control m-input" required="" maxlength="500" name="bio" value="{{user.bio}}">
+								</div>
+								<div class="form-group m-form__group">
+									<label class="m-checkbox">
+										<input id="notificationscheckbox" name="notifications" type="checkbox"> Email Notifications
+										<span></span>
+									</label>
+								</div>
 							</div>
 						</div>
 						<div class="m-portlet__foot m-portlet__foot--fit">
 							<div class="m-form__actions m-form__actions">
+								<button type="submit" class="btn btn-primary">Save</button>
                         		<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-profile-modal">Delete Frindr Profile</button>
 							</div>
 						</div>

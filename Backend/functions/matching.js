@@ -58,6 +58,7 @@ export const getMatches = async (req) => {
             list.push({user: results.message[i], count: count});
           }
         }
+        console.log(list)
         for (var i = 1; i < list.length; i++){ //sort list
           for (var j = i; j > 0; j--){
             if(list[j].count < list[j-1].count){
@@ -67,8 +68,8 @@ export const getMatches = async (req) => {
             }
           }
         }
-        // console.log(list);
-        return {message: list[0].user.email, count: list[0].count, error: false};
+         console.log(list);
+        return {message: list[list.length-1].user.email, count: list[list.length-1].count, error: false};
       } catch (error) {
         return { error: true, message: error.stack };
       }

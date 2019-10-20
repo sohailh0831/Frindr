@@ -12,12 +12,15 @@ const session = require('express-session');
 var passport = require("passport");
 var request = require("request");
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const dotenv = require('dotenv');
 dotenv.config();
 
 
 const app = express();
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
 
 // Start HTTP Server
 const port = process.env.PORT;
@@ -29,6 +32,9 @@ var certificate = 'test';
 var ca = 'test';
 var credentials = 'test';
 
+var server;
+var io;
+
 if(process.env.NODE_ENV === 'server'){
   privateKey = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/privkey.pem', 'utf8');
   certificate = fs.readFileSync('/etc/letsencrypt/live/frindr.tk/cert.pem', 'utf8');
@@ -38,6 +44,11 @@ if(process.env.NODE_ENV === 'server'){
   	cert: certificate,
   	ca: ca
   };
+  server = https.createServer(credentials, app);
+  io = require('socket.io').listen(server);
+} else {
+  server = http.createServer(app);
+  io = require('socket.io').listen(server);
 }
 
 app.engine('.hbs', exphbs({
@@ -70,19 +81,22 @@ app.use(expressValidator());
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+//socket io stuff
+app.use(function(req,res,next){
+  req.io = io;
+  next();
+});
+
 // Use routes
 app.use('/', userend);
 
-// Static folder
-app.use(express.static(path.join(__dirname, '/public')));
-
-app.listen(port, () =>{
-  console.log(`Server started on port ${port}`);
-});
-
 if(process.env.NODE_ENV === 'server'){
-  const httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(process.env.SSLPORT, () => {
+  server.listen(process.env.SSLPORT, () => {
 	   console.log(`SSL started`);
 });
+} else {
+  server.listen(port, () =>{
+    console.log(`Server started on port ${port}`);
+  });
 }

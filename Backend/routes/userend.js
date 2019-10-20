@@ -346,6 +346,8 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
     if (user.error == false) {
       console.log();
       return res.render('platform/dashboard.hbs', {
+        pageName: 'Dashboard',
+        currentUser: req.user,
         user: user.message.message,
         error: req.flash('error'),
         success: req.flash('success'),
@@ -380,6 +382,8 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
           result.message.message.interests = [];
       }
       return res.render('platform/profile.hbs', {
+        pageName: 'Profile',
+        currentUser: req.user,
         user: result.message.message,
         error: req.flash('error'),
         success: req.flash('success'),
@@ -402,6 +406,61 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
   }).catch(error => {
     req.flash('error', "Error.");
     return res.redirect('/dashboard');
+  });
+});
+
+router.post('/profile/update', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  req.checkBody('name', 'Name field is required.').notEmpty();
+  req.checkBody('bio', 'Bio field is required.').notEmpty();
+  let formErrors = req.validationErrors();
+  if (formErrors) {
+    req.flash('error', formErrors[0].msg);
+    return res.redirect('/profile');
+  }
+  console.log(req.body);
+  patchName(req.body.name, req.user.email).then(result => {
+    if (result.error == false) {
+      patchBio(req.body.bio, req.user.email).then(resultBio => {
+        if (result.error == false) {
+          let con = mysql.createConnection(dbInfo);
+          if (req.body.notifications) {
+            con.query(`UPDATE profile SET notifications=1 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          } else {
+            con.query(`UPDATE profile SET notifications=0 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', "Error.");
+                return res.redirect('/profile');
+              }
+              con.end();
+              req.flash('success', 'Updated your profile.');
+              return res.redirect('/profile');
+            });
+          }
+        }
+      }).catch(error => {
+        req.flash('error', "Error.");
+        return res.redirect('/profile');
+      });
+    } else {
+      req.flash('error', "Error.");
+      return res.redirect('/profile');
+    }
+  }).catch(error => {
+    console.log(error);
+    req.flash('error', "Error.");
+    return res.redirect('/profile');
   });
 });
 
@@ -574,8 +633,26 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
           noMatches: true,
         });
       }
-      return res.render('platform/matches.hbs', {
-        matches: result.message.message.matches,
+      if (result.message.message.matches.length === 0) {
+        return res.render('platform/matches.hbs', {
+          noMatches: true,
+        });
+      }
+      let con = mysql.createConnection(dbInfo);
+      con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
+        if (error) {
+          con.end();
+          console.log(error);
+          return res.send();
+        }
+        con.end();
+        return res.render('platform/matches.hbs', {
+          pageName: 'My Matches',
+          currentUser: req.user,
+          matches: results,
+          error: req.flash('error'),
+          success: req.flash('success'),
+        });
       });
     } else {
       req.flash('error', 'Error.');
@@ -664,5 +741,204 @@ router.post('/profile/photo_delete' ,AuthenticationFunctions.ensureAuthenticated
                                                     image_to_delete.lastIndexOf("."));
   cloudinary.uploader.destroy(file_to_delete, function(result) { });
 });
+
+router.get(`/matches/unmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let unmatchEmail = req.query.user;
+  getProfile(req.user.email).then(currentUser => {
+    if (currentUser.error == false) {
+      if (!currentUser.message.message.matches || (Object.entries(currentUser.message.message.matches).length === 0 && currentUser.message.message.matches.constructor === Object)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/dashboard');
+      }
+      if (!currentUser.message.message.matches.includes(unmatchEmail)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      getProfile(unmatchEmail).then(unmatchEmailUser => {
+        if (unmatchEmailUser.error == false) {
+          if (!unmatchEmailUser.message.message.matches.includes(req.user.email)) {
+            req.flash('error', 'User not found.');
+            return res.redirect('/matches');
+          }
+          _.remove(currentUser.message.message.matches, function(email) {
+            return email === unmatchEmail;
+          });
+          _.remove(unmatchEmailUser.message.message.matches, function(email) {
+            return email === req.user.email;
+          });
+          let con = mysql.createConnection(dbInfo);
+          con.query(`UPDATE profile SET matches='${JSON.stringify(currentUser.message.message.matches)}' WHERE email=${mysql.escape(req.user.email)};`, (error, updatingCurrentUserResult, fields) => {
+            if (error) {
+              console.log(error);
+              con.end();
+              req.flash('error', 'Error.');
+              return res.redirect('/matches');
+            }
+            con.query(`UPDATE profile SET matches='${JSON.stringify(unmatchEmailUser.message.message.matches)}' WHERE email=${mysql.escape(unmatchEmail)};`, (error, updatingCurrentUserResult, fields) => {
+              if (error) {
+                console.log(error);
+                con.end();
+                req.flash('error', 'Error.');
+                return res.redirect('/matches');
+              }
+              con.query(`DELETE FROM messages WHERE (sender=${mysql.escape(req.user.email)} AND recipient=${mysql.escape(unmatchEmail)}) OR (sender=${mysql.escape(unmatchEmail)} AND recipient=${mysql.escape(req.user.email)});`, (error, deleteResults, fields) => {
+                if (error) {
+                  console.log(error);
+                  con.end();
+                  req.flash('error', 'Error.');
+                  return res.redirect('/matches');
+                }
+                con.end();
+                req.flash('success', 'Successfully unmatched.');
+                return res.redirect('/matches');
+              });
+            });
+          });
+        } else {
+          console.log('here1');
+          req.flash('error', 'Error.');
+          return res.redirect('/matches');
+        }
+      }).catch(error => {
+        console.log('here2');
+        console.log(error);
+        req.flash('error', "Error.");
+        return res.redirect('/matches');
+      });
+    } else {
+      console.log('here3');
+      req.flash('error', 'Error.');
+      return res.redirect('/matches');
+    }
+  }).catch(error => {
+    console.log('here4');
+    console.log(error);
+    req.flash('error', "Error.");
+    return res.redirect('/matches');
+  });
+});
+
+router.get(`/matches/chat/`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  getProfile(req.user.email).then(result => {
+    if (result.error == false) {
+      if (!result.message.message.matches || (Object.entries(result.message.message.matches).length === 0 && result.message.message.matches.constructor === Object)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      if (!result.message.message.matches.includes(req.query.recipient)) {
+        req.flash('error', 'User not found.');
+        return res.redirect('/matches');
+      }
+      let con = mysql.createConnection(dbInfo);
+      con.query(`SELECT * FROM profile WHERE email IN (?);`, [result.message.message.matches], (error, results, fields) => {
+        if (error) {
+          con.end();
+          console.log(error);
+          return res.send();
+        }
+        con.end();
+
+        return res.render('platform/chat.hbs', {
+          pageName: 'Chat',
+          currentUser: req.user,
+          recipientUser: req.query.recipient,
+          error: req.flash('error'),
+          success: req.flash('success'),
+        });
+      });
+    } else {
+      req.flash('error', 'Error.');
+      return res.redirect('/matches');
+    }
+  }).catch(error => {
+    req.flash('error', "Error.");
+    return res.redirect('/matches');
+  });
+});
+
+router.get(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE (sender=${mysql.escape(req.query.currentUser)} AND recipient=${mysql.escape(req.query.recipientUser)}) OR (sender=${mysql.escape(req.query.recipientUser)} AND recipient=${mysql.escape(req.query.currentUser)}) ORDER BY date DESC;`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      con.end();
+      return res.send();
+    }
+    return res.send(messages);
+  });
+});
+
+router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(req.body.id)}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
+    if (error) {
+      console.log(error);
+      con.end();
+      return res.send();
+    }
+    req.io.sockets.emit('message', req.body);
+    return res.sendStatus(200);
+  });
+});
+
+router.get(`/matches/chat/like/:id`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE id=${mysql.escape(req.params.id)};`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+    if (messages.length === 1) {
+      con.query(`UPDATE messages SET liked=1 WHERE id=${mysql.escape(req.params.id)};`, (error, updateResult, fields) => {
+        if (error) {
+          console.log(error);
+          req.flash('error', 'Error.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+        }
+          req.flash('success', 'Liked message.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+      });
+    } else {
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+  });
+});
+
+router.get(`/matches/chat/unlike/:id`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE id=${mysql.escape(req.params.id)};`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+    if (messages.length === 1) {
+      con.query(`UPDATE messages SET liked=0 WHERE id=${mysql.escape(req.params.id)};`, (error, updateResult, fields) => {
+        if (error) {
+          console.log(error);
+          req.flash('error', 'Error.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+        }
+          req.flash('success', 'Unliked message.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+      });
+    } else {
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+  });
+});
+
+
 
 module.exports = router;

@@ -27,7 +27,8 @@
 		<div class="row">
             {{#unless noMatches}}
             {{#each matches}}
-            <div class="col-sm-3">
+            <div class="col-sm-4">
+
 				<!--begin::Portlet-->
 				<div class="m-portlet">
 					<div class="m-portlet__head">
@@ -37,27 +38,31 @@
 									<i class="la la-gear"></i>
 								</span>
 								<h3 class="m-portlet__head-text">
-									{{this}}
+									{{this.name}}
 								</h3>
 							</div>
 						</div>
 					</div>
 
 					<!--begin::Form-->
+					<div class="m-form">
 						<div class="m-portlet__body">
 							<div class="m-form__section m-form__section--first">
 								<div class="form-group m-form__group row">
+										<input type="hidden"  name="email" value="{{this.email}}">
 								</div>
 							</div>
 						</div>
 						<div class="m-portlet__foot m-portlet__foot--fit">
 							<div class="m-form__actions m-form__actions">
-								<button type="submit" class="btn btn-primary">Chat</button>
+								<a href="/matches/chat?recipient={{this.email}}" class="btn btn-primary">Chat</a>
+								<a href="/matches/unmatch?user={{this.email}}" class="btn btn-danger">Unmatch</a>
 							</div>
 						</div>
-
+					</div>
 					<!--end::Form-->
 				</div>
+
 				<!--end::Portlet-->
 			</div>
             {{/each}}
