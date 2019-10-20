@@ -18,8 +18,16 @@ const nodemailer = require('nodemailer');
 const geolib = require('geolib');
 var NodeGeocoder = require('node-geocoder');
 const dotenv = require('dotenv');
-dotenv.config();
+var cloudinary = require('cloudinary').v2;
+const multer = require('multer'); // file storing middleware
+cloudinary.config({ 
+  cloud_name: 'frindr', 
+  api_key: '977515228941379', 
+  api_secret: '06MnR5rWItBmatsb9RQWRu_TjQE' 
+});
 
+
+dotenv.config();
 
 import {
   postProfile,
@@ -38,8 +46,8 @@ import {
 let transporter = nodemailer.createTransport({
  service: 'gmail',
  auth: {
-        user: 'FrindrPurdue@gmail.com',
-        pass: 'Okaydone1234!'
+        user: process.env.NOTIFCATION_EMAIL,
+        pass: process.env.NOTIFICATION_PASS
     }
 });
 let dbInfo = {
@@ -70,6 +78,7 @@ router.get('/api/matches', getMatches)
 router.get('/', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   return res.redirect('/dashboard');
 });
+
 
 router.get('/login', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   return res.render('platform/login.hbs', {
@@ -335,7 +344,10 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
 
   await getProfile(email.message).then(user => {
     if (user.error == false) {
+      console.log();
       return res.render('platform/dashboard.hbs', {
+        pageName: 'Dashboard',
+        currentUser: req.user,
         user: user.message.message,
         error: req.flash('error'),
         success: req.flash('success'),
@@ -370,6 +382,8 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
           result.message.message.interests = [];
       }
       return res.render('platform/profile.hbs', {
+        pageName: 'Profile',
+        currentUser: req.user,
         user: result.message.message,
         error: req.flash('error'),
         success: req.flash('success'),
@@ -633,6 +647,8 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
         }
         con.end();
         return res.render('platform/matches.hbs', {
+          pageName: 'My Matches',
+          currentUser: req.user,
           matches: results,
           error: req.flash('error'),
           success: req.flash('success'),
@@ -646,6 +662,90 @@ router.get('/matches', AuthenticationFunctions.ensureAuthenticated, (req, res) =
     req.flash('error', "Error.");
     return res.redirect('/dashboard');
   });
+});
+
+const upload = require("../functions/multer");
+
+router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
+
+  let result;
+  try {
+    result = await cloudinary.uploader.upload(req.file.path);
+  } catch (error) {
+
+    req.flash('error', 'Error: no photo selected.');
+    return res.redirect('/profile');
+  }
+  
+
+  var photo_url = result.secure_url;
+  let email = req.user.email;
+  //get the current users current photo array, may be updated late to be more efficient
+  getProfile(email).then( currentValues => {
+      var currentPhotoList;
+      if(!currentValues.message.message.pictures){
+        currentPhotoList = [];
+      }
+      else{
+        currentPhotoList = currentValues.message.message.pictures;
+      }
+      currentPhotoList.push(photo_url);
+      let con = mysql.createConnection(dbInfo);
+      con.query(`UPDATE profile SET pictures='${JSON.stringify(currentPhotoList)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+        if (error) {
+          console.log(error.stack);
+          con.end();
+          req.flash('error', 'Error uploading photo.');
+          return res.redirect('/profile');
+        }
+        con.end();
+        req.flash('success', 'Successfully uploaded photo.');
+        return res.redirect('/profile');
+      });
+    }).catch(error => {
+      console.log(error);
+      req.flash('error', 'Error uploading photo.');
+      return res.redirect('/profile');
+    });
+});
+
+
+router.post('/profile/photo_delete' ,AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
+  //console.log(req.body.subject);
+  let image_to_delete = req.body.subject;
+  let email = req.user.email;
+  //get the current users current photo array, may be updated late to be more efficient
+  getProfile(email).then( currentValues => {
+      var currentPhotoList;
+      currentPhotoList = currentValues.message.message.pictures;
+
+      if(currentPhotoList){
+        var index = currentPhotoList.indexOf(image_to_delete);
+        if (index > -1) {
+          currentPhotoList.splice(index, 1);
+        }
+      
+      let con = mysql.createConnection(dbInfo);
+      con.query(`UPDATE profile SET pictures='${JSON.stringify(currentPhotoList)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+        if (error) {
+          console.log(error.stack);
+          con.end();
+          req.flash('error', 'Error deleting photo.');
+          return res.redirect('/profile');
+        }
+        con.end();
+        req.flash('success', 'Successfully deleted photo.');
+        return res.redirect('/profile');
+      });
+    }
+    }).catch(error => {
+      console.log(error);
+      req.flash('error', 'Error deleting photo.');
+      return res.redirect('/profile');
+    });
+    let file_to_delete = image_to_delete.substring(image_to_delete.lastIndexOf("/") + 1,
+                                                    image_to_delete.lastIndexOf("."));
+  cloudinary.uploader.destroy(file_to_delete, function(result) { });
 });
 
 router.get(`/matches/unmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
@@ -745,8 +845,11 @@ router.get(`/matches/chat/`, AuthenticationFunctions.ensureAuthenticated, (req, 
         con.end();
 
         return res.render('platform/chat.hbs', {
-          currentUser: req.user.email,
+          pageName: 'Chat',
+          currentUser: req.user,
           recipientUser: req.query.recipient,
+          error: req.flash('error'),
+          success: req.flash('success'),
         });
       });
     } else {
@@ -773,7 +876,7 @@ router.get(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated
 
 router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   let con = mysql.createConnection(dbInfo);
-  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(uuidv4())}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
+  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(req.body.id)}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
     if (error) {
       console.log(error);
       con.end();
@@ -783,5 +886,65 @@ router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticate
     return res.sendStatus(200);
   });
 });
+
+router.get(`/matches/chat/like/:id`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE id=${mysql.escape(req.params.id)};`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+    if (messages.length === 1) {
+      con.query(`UPDATE messages SET liked=1 WHERE id=${mysql.escape(req.params.id)};`, (error, updateResult, fields) => {
+        if (error) {
+          console.log(error);
+          req.flash('error', 'Error.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+        }
+          req.flash('success', 'Liked message.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+      });
+    } else {
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+  });
+});
+
+router.get(`/matches/chat/unlike/:id`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  let con = mysql.createConnection(dbInfo);
+  con.query(`SELECT * FROM messages WHERE id=${mysql.escape(req.params.id)};`, (error, messages, fields) => {
+    if (error) {
+      console.log(error);
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+    if (messages.length === 1) {
+      con.query(`UPDATE messages SET liked=0 WHERE id=${mysql.escape(req.params.id)};`, (error, updateResult, fields) => {
+        if (error) {
+          console.log(error);
+          req.flash('error', 'Error.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+        }
+          req.flash('success', 'Unliked message.');
+          con.end();
+          return res.redirect(`/matches/chat?recipient=${messages[0].sender}`);
+      });
+    } else {
+      req.flash('error', 'Error.');
+      con.end();
+      return res.redirect('/matches');
+    }
+  });
+});
+
+
 
 module.exports = router;

@@ -4,6 +4,8 @@ const expressValidator = require('express-validator');
 const mysql = require('mysql');
 const router = express.Router();
 const flash = require('connect-flash');
+const dotenv = require('dotenv');
+dotenv.config();
 import {
    getProfileIntern
   } from "./profile";
