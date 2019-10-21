@@ -9,64 +9,56 @@ describe('Login page tests', function () {
    });
 
    it('Check page loads to login when not signed in', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       let currURL = await driver.getCurrentUrl();
       assert.equal(currURL, 'https://frindr.tk/login');
    });
 
    it('Check logo exists', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       assert( await driver.wait(until.elementLocated(By.className('m-login__logo')), 10000) );
    });
 
    it('Check username field exists', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       assert( await driver.wait(until.elementLocated(By.name('username')), 10000) );
    });
 
    it('Check password field exists', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       assert( await driver.wait(until.elementLocated(By.name('password')), 10000) );
    });
 
    it('Check sign in button exists', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       assert( await driver.wait(until.elementLocated(By.id('m_login_signin_submit')), 10000) );
    });
 
    it('Check register now button exists', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       assert( await driver.wait(until.elementLocated(By.className('m-link m-link--light m-login__account-link')), 10000) );
    });
 
-   it('Verify move to registration page after clicking "register now"', async function () {
-      await driver.get('https://frindr.tk');
-      await driver.findElement(By.className('m-link m-link--light m-login__account-link')).click();
-      let currURL = await driver.getCurrentUrl();
-      assert.equal(currURL, 'https://frindr.tk/register');
-   });
-
    it('Verify error comes when sign in clicked with missing input', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       await driver.findElement(By.id('m_login_signin_submit')).click();
       assert( await driver.wait(until.elementLocated(By.className('m-alert')), 10000) );
    });
 
    it('Verify error comes when sign in clicked with wrong input', async function () {
+      await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       await driver.findElement(By.name('username')).sendKeys('test@test.test');
       await driver.findElement(By.name('password')).sendKeys('NOTTHEPASSWORD');
       await driver.findElement(By.id('m_login_signin_submit')).click();
       assert( await driver.wait(until.elementLocated(By.className('m-alert')), 10000) );
-   });
-
-   it('Verify move to dashboard after correct login', async function () {
-      await driver.get('https://frindr.tk');
-      await driver.findElement(By.name('username')).sendKeys('test@test.test');
-      await driver.findElement(By.name('password')).sendKeys('testpassword');
-      await driver.findElement(By.id('m_login_signin_submit')).click();
-      let currURL = await driver.getCurrentUrl();
-      assert.equal(currURL, 'https://frindr.tk/dashboard');
    });
 
    // close the browser after running tests
