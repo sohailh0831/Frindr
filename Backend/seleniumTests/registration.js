@@ -20,35 +20,35 @@ describe('Registration tests', function () {
       await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       await driver.findElement(By.className('m-link m-link--light m-login__account-link')).click();
-      assert( await driver.wait(until.elementLocated(By.name('name')), 10000) );
+      assert(await driver.wait(until.elementLocated(By.name('name')), 10000));
    });
 
    it('Check email field exists', async function () {
       await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       await driver.findElement(By.className('m-link m-link--light m-login__account-link')).click();
-      assert( await driver.wait(until.elementLocated(By.name('email')), 10000) );
+      assert(await driver.wait(until.elementLocated(By.name('email')), 10000));
    });
 
    it('Check password field exists', async function () {
       await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       await driver.findElement(By.className('m-link m-link--light m-login__account-link')).click();
-      assert( await driver.wait(until.elementLocated(By.name('password')), 10000) );
+      assert(await driver.wait(until.elementLocated(By.name('password')), 10000));
    });
 
    it('Check confirm password field exists', async function () {
       await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       await driver.findElement(By.className('m-link m-link--light m-login__account-link')).click();
-      assert( await driver.wait(until.elementLocated(By.name('password2')), 10000) );
+      assert(await driver.wait(until.elementLocated(By.name('password2')), 10000));
    });
 
    it('Check sign up button exists', async function () {
       await driver.manage().window().maximize();
       await driver.get('https://frindr.tk');
       await driver.findElement(By.className('m-link m-link--light m-login__account-link')).click();
-      assert( await driver.wait(until.elementLocated(By.id('m_login_signup_submit')), 10000) );
+      assert(await driver.wait(until.elementLocated(By.id('m_login_signup_submit')), 10000));
    });
 
    it('Verify move to login page after clicking "login now"', async function () {
