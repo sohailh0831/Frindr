@@ -45,7 +45,7 @@ export const getMatches = async (req) => {
           //need to make run async
           let current = JSON.parse(results.message[i].interests);
 
-          if (seenList.includes(results.message[i].email) || results.message[i].email === req.body.email){
+          if (seenList.includes(results.message[i].email) || results.message[i].email === req.body.email || results.message.block ){
             // continue;
           }
           else{
