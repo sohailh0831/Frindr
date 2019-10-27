@@ -701,7 +701,7 @@ router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.en
     result = await cloudinary.uploader.upload(req.file.path);
   } catch (error) {
 
-    req.flash('error', 'Error: no photo selected.');
+    //req.flash('error', 'Error: no photo selected.');
     return res.redirect('/profile');
   }
   
@@ -728,7 +728,8 @@ router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.en
         }
         con.end();
         req.flash('success', 'Successfully uploaded photo.');
-        return res.redirect('/profile');
+        console.log("poopy fart");
+        //return res.redirect('/profile');
       });
     }).catch(error => {
       console.log(error);
@@ -739,41 +740,44 @@ router.post('/profile/photo', upload.single("image") ,AuthenticationFunctions.en
 
 
 router.post('/profile/photo_delete' ,AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
-  //console.log(req.body.subject);
-  let image_to_delete = req.body.subject;
-  let email = req.user.email;
-  //get the current users current photo array, may be updated late to be more efficient
-  getProfile(email).then( currentValues => {
-      var currentPhotoList;
-      currentPhotoList = currentValues.message.message.pictures;
+  // //console.log(req.body.subject);
+  // let image_to_delete = req.body.subject;
+  // let email = req.user.email;
+  // //get the current users current photo array, may be updated late to be more efficient
+  // getProfile(email).then( currentValues => {
+  //     var currentPhotoList;
+  //     currentPhotoList = currentValues.message.message.pictures;
 
-      if(currentPhotoList){
-        var index = currentPhotoList.indexOf(image_to_delete);
-        if (index > -1) {
-          currentPhotoList.splice(index, 1);
-        }
+  //     if(currentPhotoList){
+  //       var index = currentPhotoList.indexOf(image_to_delete);
+  //       if (index > -1) {
+  //         currentPhotoList.splice(index, 1);
+  //       }
       
-      let con = mysql.createConnection(dbInfo);
-      con.query(`UPDATE profile SET pictures='${JSON.stringify(currentPhotoList)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
-        if (error) {
-          console.log(error.stack);
-          con.end();
-          req.flash('error', 'Error deleting photo.');
-          return res.redirect('/profile');
-        }
-        con.end();
-        req.flash('success', 'Successfully deleted photo.');
-        return res.redirect('/profile');
-      });
-    }
-    }).catch(error => {
-      console.log(error);
-      req.flash('error', 'Error deleting photo.');
-      return res.redirect('/profile');
-    });
-    let file_to_delete = image_to_delete.substring(image_to_delete.lastIndexOf("/") + 1,
-                                                    image_to_delete.lastIndexOf("."));
-  cloudinary.uploader.destroy(file_to_delete, function(result) { });
+  //     let con = mysql.createConnection(dbInfo);
+  //     con.query(`UPDATE profile SET pictures='${JSON.stringify(currentPhotoList)}' WHERE email=${mysql.escape(email)};`, (error, resultsUpdate, fields) => {
+  //       if (error) {
+  //         console.log(error.stack);
+  //         con.end();
+  //         req.flash('error', 'Error deleting photo.');
+  //         return res.redirect('/profile');
+  //       }
+  //       con.end();
+  //       req.flash('success', 'Successfully deleted photo.');
+  //       return res.redirect('/profile');
+  //     });
+  //   }
+  //   }).catch(error => {
+  //     console.log(error);
+  //     req.flash('error', 'Error deleting photo.');
+  //     return res.redirect('/profile');
+  //   });
+  //   let file_to_delete = image_to_delete.substring(image_to_delete.lastIndexOf("/") + 1,
+  //                                                   image_to_delete.lastIndexOf("."));
+  // cloudinary.uploader.destroy(file_to_delete, function(result) { });
+  
+  req.flash('success', 'Successfully deleted photo.');
+  return res.redirect('/profile');
 });
 
 router.get(`/matches/unmatch`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
