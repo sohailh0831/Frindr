@@ -535,6 +535,16 @@ router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthentic
   });
 });
 
+router.post(`/profile/update-block`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
+  patchBlock(req).then(result => {
+    req.flash('success', 'Status updated');
+    return res.redirect('/profile');
+  }).catch(error => {
+    req.flash('error', 'Error.');
+    return res.redirect('/profile');
+  });
+});
+
 router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   patchCharacteristics(req).then(result => {
     req.flash('success', 'Updated characteristics.');
