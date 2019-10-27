@@ -534,7 +534,7 @@ router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthentic
 
 router.post(`/profile/update-block`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   console.log("UPDATING BLOCK STATUS");
-  console.log(req.body);
+  console.log(req.user);
   patchBlock(req).then(result => {
     req.flash('success', 'Status updated');
     return res.redirect('/profile');

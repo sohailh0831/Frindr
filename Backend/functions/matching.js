@@ -45,7 +45,7 @@ export const getMatches = async (req) => {
       //need to make run async
       let current = JSON.parse(results.message[i].interests);
 
-      if (seenList.includes(results.message[i].email) || results.message[i].email === req.body.email || results.message.block) {
+      if (seenList.includes(results.message[i].email) || results.message[i].email === req.body.email || results.message[i].block) {
         // continue;
       }
       else {
@@ -77,10 +77,21 @@ export const getMatches = async (req) => {
 
 export const patchBlock = async (req) => {
   try {
-    if (!req.body.email || typeof req.body.block !== undefined) {
-      throw new Error("Need email and block boolean")
+    console.log(req.user)
+    console.log(req.body)
+    if (!req.user.email) {
+      throw new Error("Need email")
     }
+    console.log("hitting")
+    if( req.body.block === 'on' ){
+      req.body.block = 1;
+    }
+    else{
+      req.body.block = 0;
+    }
+    console.log(req.body.block)
     let results = await patchBlockStore(req);
+    console.log(results)
     if (results.error == false) {
       return results;
     }
@@ -138,7 +149,7 @@ function getProfilesStoreMatches(req, location) {
 }
 
 function patchBlockStore(req) {
-  let email = req.body.email;
+  let email = req.user.email;
   let block = JSON.stringify(req.body.block);
   return new Promise(resolve => {
     try {
