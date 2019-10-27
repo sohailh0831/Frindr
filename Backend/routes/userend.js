@@ -120,26 +120,42 @@ passport.use(new LocalStrategy({ passReqToCallback: true, },
       }
       if (results.length === 0) {
         con.end();
-        return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
+        // return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
+        return done(null, false);
       } else {
-        if (bcrypt.compareSync(password, results[0].password)) {
-          let user = {
-            email: results[0].email,
-            name: results[0].name,
-          };
-           con.query(`UPDATE profile SET location=${mysql.escape(myLocationVariable)} WHERE email=${mysql.escape(user.email)};`, (error, results, fields) => {
-                if (error) {
-                  console.log(error.stack);
-                  con.end();
-                  return;
-                }
-               con.end();
-               return done(null, user);
-           });
-        } else {
-          con.end();
-          return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
-        }
+        // if (bcrypt.compareSync(password, results[0].password)) {
+        //   let user = {
+        //     email: results[0].email,
+        //     name: results[0].name,
+        //   };
+        //    con.query(`UPDATE profile SET location=${mysql.escape(myLocationVariable)} WHERE email=${mysql.escape(user.email)};`, (error, results, fields) => {
+        //         if (error) {
+        //           console.log(error.stack);
+        //           con.end();
+        //           return;
+        //         }
+        //        con.end();
+        //        return done(null, user);
+        //    });
+        // } else {
+        //   con.end();
+        //   //return done(null, false, req.flash('error', 'Username or Password is incorrect.'));
+        //   //Bug #1
+        //   return done(null, false);
+        // }
+        let user = {
+          email: results[0].email,
+          name: results[0].name,
+        };
+         con.query(`UPDATE profile SET location=${mysql.escape(myLocationVariable)} WHERE email=${mysql.escape(user.email)};`, (error, results, fields) => {
+              if (error) {
+                console.log(error.stack);
+                con.end();
+                return;
+              }
+             con.end();
+             return done(null, user);
+         });
       }
     });
 
@@ -165,7 +181,7 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   req.checkBody('email', 'Email field is required.').notEmpty();
   req.checkBody('password', 'Password field is required.').notEmpty();
   req.checkBody('password2', 'Confirm password field is required.').notEmpty();
-  req.checkBody('password2', 'Password does not match confirmation password field.').equals(req.body.password);
+  // req.checkBody('password2', 'Password does not match confirmation password field.').equals(req.body.password);
   if (req.body.password.length < 3) {
       req.flash('error', 'Password must be longer than 3 characters.');
       return res.redirect('/register');
@@ -487,24 +503,36 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
       return;
     }
     if (results.length == 1) {
-      if (bcrypt.compareSync(req.body.currentPassword, results[0].password)) {
-          let salt = bcrypt.genSaltSync(10);
-          let hashedPassword = bcrypt.hashSync(req.body.newPassword, salt);
-          con.query(`UPDATE profile SET password=${mysql.escape(hashedPassword)} WHERE email=${mysql.escape(req.user.email)};`, (error, results, fields) => {
-            if (error) {
-              console.log(error.stack);
-              con.end();
-              return res.send();
-            }
-            con.end();
-            req.flash('success', 'Password successfully updated.');
-            return res.redirect('/profile');
-          });
-      } else {
-        req.flash('error', 'Current password is incorrect.')
+      // if (bcrypt.compareSync(req.body.currentPassword, results[0].password)) {
+      //     let salt = bcrypt.genSaltSync(10);
+      //     let hashedPassword = bcrypt.hashSync(req.body.newPassword, salt);
+      //     con.query(`UPDATE profile SET password=${mysql.escape(hashedPassword)} WHERE email=${mysql.escape(req.user.email)};`, (error, results, fields) => {
+      //       if (error) {
+      //         console.log(error.stack);
+      //         con.end();
+      //         return res.send();
+      //       }
+      //       con.end();
+      //       req.flash('success', 'Password successfully updated.');
+      //       return res.redirect('/profile');
+      //     });
+      // } else {
+      //   req.flash('error', 'Current password is incorrect.')
+      //   con.end();
+      //   return res.redirect('/profile');
+      // }
+      let salt = bcrypt.genSaltSync(10);
+      let hashedPassword = bcrypt.hashSync(req.body.newPassword, salt);
+      con.query(`UPDATE profile SET password=${mysql.escape(hashedPassword)} WHERE email=${mysql.escape(req.user.email)};`, (error, results, fields) => {
+        if (error) {
+          console.log(error.stack);
+          con.end();
+          return res.send();
+        }
         con.end();
+        req.flash('success', 'Password successfully updated.');
         return res.redirect('/profile');
-      }
+      });
     }
   });
 });
@@ -780,25 +808,28 @@ router.get(`/matches/unmatch`, AuthenticationFunctions.ensureAuthenticated, (req
               req.flash('error', 'Error.');
               return res.redirect('/matches');
             }
-            con.query(`UPDATE profile SET matches='${JSON.stringify(unmatchEmailUser.message.message.matches)}' WHERE email=${mysql.escape(unmatchEmail)};`, (error, updatingCurrentUserResult, fields) => {
-              if (error) {
-                console.log(error);
-                con.end();
-                req.flash('error', 'Error.');
-                return res.redirect('/matches');
-              }
-              con.query(`DELETE FROM messages WHERE (sender=${mysql.escape(req.user.email)} AND recipient=${mysql.escape(unmatchEmail)}) OR (sender=${mysql.escape(unmatchEmail)} AND recipient=${mysql.escape(req.user.email)});`, (error, deleteResults, fields) => {
-                if (error) {
-                  console.log(error);
-                  con.end();
-                  req.flash('error', 'Error.');
-                  return res.redirect('/matches');
-                }
-                con.end();
-                req.flash('success', 'Successfully unmatched.');
-                return res.redirect('/matches');
-              });
-            });
+            // con.query(`UPDATE profile SET matches='${JSON.stringify(unmatchEmailUser.message.message.matches)}' WHERE email=${mysql.escape(unmatchEmail)};`, (error, updatingCurrentUserResult, fields) => {
+            //   if (error) {
+            //     console.log(error);
+            //     con.end();
+            //     req.flash('error', 'Error.');
+            //     return res.redirect('/matches');
+            //   }
+            //   con.query(`DELETE FROM messages WHERE (sender=${mysql.escape(req.user.email)} AND recipient=${mysql.escape(unmatchEmail)}) OR (sender=${mysql.escape(unmatchEmail)} AND recipient=${mysql.escape(req.user.email)});`, (error, deleteResults, fields) => {
+            //     if (error) {
+            //       console.log(error);
+            //       con.end();
+            //       req.flash('error', 'Error.');
+            //       return res.redirect('/matches');
+            //     }
+            //     con.end();
+            //     req.flash('success', 'Successfully unmatched.');
+            //     return res.redirect('/matches');
+            //   });
+            // });
+            con.end();
+            req.flash('success', 'Successfully unmatched.');
+            return res.redirect('/matches');
           });
         } else {
           console.log('here1');
@@ -882,7 +913,7 @@ router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticate
       con.end();
       return res.send();
     }
-    req.io.sockets.emit('message', req.body);
+    //req.io.sockets.emit('message', req.body);
     return res.sendStatus(200);
   });
 });
