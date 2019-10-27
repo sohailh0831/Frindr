@@ -424,7 +424,7 @@
 
 			</div>
 
-			<div class="col-lg-3">
+			<div class="col-lg-4">
 
 				<!--begin::Portlet-->
 				<div class="m-portlet">
@@ -435,19 +435,19 @@
 									<i class="la la-gear"></i>
 								</span>
 								<h3 class="m-portlet__head-text">
-									Hide From Matching
+									Hide From Matchmaking
 								</h3>
 							</div>
 						</div>
 					</div>
 
 					<!--begin::Form-->
-					<form class="m-form" action="/patchBlock" method="post">
+					<form class="m-form" action="/profile/update-block" method="post">
 						<div class="m-portlet__body">
-							<div class="row m-login__form-sub">
-								<div class="col m--align-left m-login__form-left">
-									<label class="m-checkbox  m-checkbox--focus">
-										<input type="checkbox" name="block"> Hide From Matching?
+							<div class="m-form__section m-form__section--first">
+								<div class="form-group m-form__group">
+									<label class="m-checkbox">
+										<input id="matchHideCheckbox" name="block" type="checkbox"> Hide From Matchmaking?
 										<span></span>
 									</label>
 								</div>
