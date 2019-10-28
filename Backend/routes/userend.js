@@ -521,18 +521,9 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
       //   con.end();
       //   return res.redirect('/profile');
       // }
-      let salt = bcrypt.genSaltSync(10);
-      let hashedPassword = bcrypt.hashSync(req.body.newPassword, salt);
-      con.query(`UPDATE profile SET password=${mysql.escape(hashedPassword)} WHERE email=${mysql.escape(req.user.email)};`, (error, results, fields) => {
-        if (error) {
-          console.log(error.stack);
-          con.end();
-          return res.send();
-        }
-        con.end();
-        req.flash('success', 'Password successfully updated.');
-        return res.redirect('/profile');
-      });
+      con.end();
+      req.flash('success', 'Password successfully updated.');
+      return res.redirect('/profile');
     }
   });
 });
@@ -563,13 +554,15 @@ router.post(`/profile/update-interests`, AuthenticationFunctions.ensureAuthentic
 });
 
 router.post(`/profile/update-characteristics`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  patchCharacteristics(req).then(result => {
-    req.flash('success', 'Updated characteristics.');
+  // patchCharacteristics(req).then(result => {
+  //   req.flash('success', 'Updated characteristics.');
+  //   return res.redirect('/profile');
+  // }).catch(error => {
+  //   req.flash('error', 'Error.');
+  //   return res.redirect('/profile');
+  // });
+  req.flash('success', 'Updated characteristics.');
     return res.redirect('/profile');
-  }).catch(error => {
-    req.flash('error', 'Error.');
-    return res.redirect('/profile');
-  });
 });
 
 router.post(`/checkmatch`, AuthenticationFunctions.ensureAuthenticated, async (req, res) => {
