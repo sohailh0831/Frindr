@@ -360,7 +360,8 @@ router.get('/dashboard', AuthenticationFunctions.ensureAuthenticated, async (req
         user_interests: user.message.message.interests,
         user_pictures: user.message.message.pictures,
         user_name: user.message.message.name,
-        user_email: user.message.message.email
+        user_email: user.message.message.email,
+        user_bio: user.message.message.bio
       });
     } else {
       req.flash('error', 'Error.');
