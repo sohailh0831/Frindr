@@ -29,7 +29,7 @@
 		<div class="alert alert-danger alert-dismissible fade show" role="alert">
 				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 				</button>
-				<strong>Oh snap!</strong> No users are available in your area. Please check back again later!
+				<!-- <strong>Oh snap!</strong> No users are available in your area. Please check back again later! -->
 		</div>
 		{{/if}}
 
@@ -37,7 +37,7 @@
 			{{#if usersDoNotExist}}
 			<script type="text/javascript">
 				$(window).on('load',function(){
-					swal("No matches found!", "Please check back again later.", "error")
+					// swal("No matches found!", "Please check back again later.", "error")
 				});
 			</script>
 			{{else}}
@@ -154,6 +154,7 @@
 												{{#each user_interests}}
 												<li>{{this}}</li>
 												{{/each}}
+												<li>
 											</ul>
 										</div>
 										</div>
