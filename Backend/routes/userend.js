@@ -209,9 +209,9 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
 });
 
 router.get('/logout', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  req.logout();
-  req.session.destroy();
-  return res.redirect('/login');
+  //req.logout();
+  //req.session.destroy();
+  return res.redirect('/dashboard');
 });
 
 router.get('/forgot-password', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
