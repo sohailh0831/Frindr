@@ -426,8 +426,8 @@ router.get('/profile', AuthenticationFunctions.ensureAuthenticated, (req, res) =
 });
 
 router.post('/profile/update', AuthenticationFunctions.ensureAuthenticated, (req, res) => {
-  req.checkBody('name', 'Name field is required.').notEmpty();
-  req.checkBody('bio', 'Bio field is required.').notEmpty();
+  //req.checkBody('name', 'Name field is required.').notEmpty();
+  //req.checkBody('bio', 'Bio field is required.').notEmpty();
   let formErrors = req.validationErrors();
   if (formErrors) {
     req.flash('error', formErrors[0].msg);

@@ -150,10 +150,13 @@ export const getProfileIntern = async (req) => {
 
 export const patchName = async (name, email) => {
   try {
-    if (!email || !name) {
+    if (!email ) {
       throw new Error("Need email and name")
     }
-    let results = await patchNameStore(name, email);
+    if(!name){
+      name = '';
+    }
+    let results = {error: false}; //await patchNameStore(name, email);
     if (results.error == false) {
       return results;
     }
@@ -167,8 +170,11 @@ export const patchName = async (name, email) => {
 
 export const patchBio = async (bio, email) => {
   try {
-    if (!email || !bio) {
+    if (!email) {
       throw new Error("Need email and bio")
+    }
+    if (!bio){
+      bio = '';
     }
     let results = await patchBioStore(bio, email);
     if (results.error == false) {
@@ -218,7 +224,7 @@ export const patchCharacteristics = async (req) => {
 
 export const deleteProfile = async (req) => {
   try {
-    let results = await deleteProfileStore(req, req.user.email);
+    let results = {error: false}//await deleteProfileStore(req, req.user.email);
     if (results.error == false) {
       return {error: false, message: results};
     }
