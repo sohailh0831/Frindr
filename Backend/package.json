@@ -4,8 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "mocha --require babel-core/register --recursive test",
-    "start": "babel-node app.js"
+    "start": "babel-node app.js",
+    "chai": "mocha --require babel-core/register --recursive test",
+    "selenium": "mocha --timeout 10000 --recursive seleniumTests",
+    "test": "npm run chai && npm run selenium"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "chai-http": "^4.3.0",
+    "chromedriver": "^77.0.0",
     "cloudinary": "^1.16.0",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.4",
@@ -31,6 +34,7 @@
     "express-handlebars": "^3.1.0",
     "express-session": "^1.16.2",
     "express-validator": "^5.3.1",
+    "geckodriver": "^1.19.0",
     "geo-coder": "^1.0.2",
     "geolib": "^3.0.4",
     "handlebars": "^4.2.0",
@@ -47,6 +51,7 @@
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
     "request": "^2.88.0",
+    "selenium-webdriver": "^4.0.0-alpha.5",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {

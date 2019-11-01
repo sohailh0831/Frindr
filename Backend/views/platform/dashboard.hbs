@@ -73,13 +73,15 @@
 																<div class="item active">
 															{{else}}
 																<div class="item">
-															{{/if}} 
+															{{/if}}
 																<img src="{{this}}" alt="user picture" style="width:320px;height:329px;">
 															</div>
 														{{/each}}
 													{{else}}
 														<div class="item active">
-															<img src="https://res.cloudinary.com/frindr/image/upload/v1571593624/no-photo_eoc1ek.gif" alt="user picture" style="width:320px;height:329px;">
+															<div style="text-align:center;">
+																<img src="https://res.cloudinary.com/frindr/image/upload/v1571593624/no-photo_eoc1ek.gif" alt="user picture" style="width:320px;height:329px;">
+															</div>
 														</div>
 													{{/if}}
 												</div>
@@ -163,6 +165,41 @@
 				</div>
 				<!--end::Portlet-->
 			</div>
+			<div class="col-lg-4">
+				<!--begin::Portlet-->
+				<div class="m-portlet">
+					<div class="m-portlet__head">
+						<div class="m-portlet__head-caption">
+							<div class="m-portlet__head-title">
+								<span class="m-portlet__head-icon m--hide">
+									<i class="la la-gear"></i>
+								</span>
+								<h3 class="m-portlet__head-text">
+									Bio
+								</h3>
+							</div>
+						</div>
+					</div>
+
+					<!--begin::Form-->
+						<div class="m-portlet__body">
+							<div class="m-form__section m-form__section--first">
+								<div class="form-group m-form__group row">
+											{{user_bio}}
+									</div>
+							</div>
+						</div>
+
+						<div class="m-portlet__foot m-portlet__foot--fit">
+
+						</div>
+
+					<!--end::Form-->
+				</div>
+				<!--end::Portlet-->
+			</div>
+
+
 			<div class="col-lg-4">
 				<!--begin::Portlet-->
 				<div class="m-portlet">
