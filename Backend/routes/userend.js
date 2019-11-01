@@ -167,16 +167,21 @@ router.post('/register', AuthenticationFunctions.ensureNotAuthenticated, (req, r
   req.checkBody('password', 'Password field is required.').notEmpty();
   req.checkBody('password2', 'Confirm password field is required.').notEmpty();
   req.checkBody('password2', 'Password does not match confirmation password field.').equals(req.body.password);
-  if (req.body.password.length < 3) {
-    req.flash('error', 'Password must be longer than 3 characters.');
-    return res.redirect('/register');
-  } else if (req.body.password.includes(' ')) {
-    req.flash('error', 'Password cannot contain spaces.');
-    return res.redirect('/register');
-  }
   let formErrors = req.validationErrors();
   if (formErrors) {
     req.flash('error', formErrors[0].msg);
+    return res.redirect('/register');
+  }
+  if (req.body.password.length < 3 || req.body.password.length > 64) {
+    req.flash('error', 'Password must be longer than 3 characters and less than 64 characters.');
+    return res.redirect('/register');
+  }
+  if (req.body.name.length < 1 || req.body.name.length > 240) {
+    req.flash('error', 'Name must be less than or equal to 240 characters and is required.');
+    return res.redirect('/register');
+  }
+  if (req.body.email.length < 1 || req.body.email.length > 240) {
+    req.flash('error', 'Emails must be less than or equal to 240 characters and is required.');
     return res.redirect('/register');
   }
   let salt = bcrypt.genSaltSync(10);
@@ -282,20 +287,16 @@ router.get('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNot
 router.post('/reset-password/:resetPasswordID', AuthenticationFunctions.ensureNotAuthenticated, (req, res) => {
   let newPassword = req.body.newPassword;
   let newPassword2 = req.body.newPassword2;
-  if (newPassword.includes(' ') || newPassword2.includes(' ')) {
-    req.flash('error', 'New Password cannot contain spaces.');
-    return res.redirect(`/reset-password/${req.params.resetPasswordID}`);
-  }
-  if (newPassword.length < 4 || newPassword2.length < 4) {
-    req.flash('error', 'Password must be longer than 3 characters.');
-    return res.redirect(`/reset-password/${req.params.resetPasswordID}`);
-  }
   req.checkBody('newPassword', 'New password field is required.').notEmpty();
   req.checkBody('newPassword2', 'Confirm New password field is required.').notEmpty();
   req.checkBody('newPassword2', 'New password does not match confirmation password field.').equals(req.body.newPassword);
   let formErrors = req.validationErrors();
   if (formErrors) {
     req.flash('error', formErrors[0].msg);
+    return res.redirect(`/reset-password/${req.params.resetPasswordID}`);
+  }
+  if (newPassword.length < 3 || newPassword2.length > 64) {
+    req.flash('error', 'Password must be 3 characters or longer and 64 characters or shorter.');
     return res.redirect(`/reset-password/${req.params.resetPasswordID}`);
   }
   let con = mysql.createConnection(dbInfo);
@@ -416,37 +417,22 @@ router.post('/profile/update', AuthenticationFunctions.ensureAuthenticated, (req
     req.flash('error', formErrors[0].msg);
     return res.redirect('/profile');
   }
-  console.log(req.body);
+  if (req.body.name.length < 1 || req.body.name.length > 240) {
+    req.flash('error', 'Name must be less than or equal to 240 characters.');
+    return res.redirect('/profile');
+  }
+  if (req.body.bio.length < 1 || req.body.bio.length > 5000) {
+    req.flash('error', 'Bio must be less than or equal to 5000 characters.');
+    return res.redirect('/profile');
+  }
   patchName(req.body.name, req.user.email).then(result => {
     if (result.error == false) {
       patchBio(req.body.bio, req.user.email).then(resultBio => {
         if (result.error == false) {
           let con = mysql.createConnection(dbInfo);
-          if (req.body.notifications) {
-            con.query(`UPDATE profile SET notifications=1 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
-              if (error) {
-                console.log(error);
-                con.end();
-                req.flash('error', "Error.");
-                return res.redirect('/profile');
-              }
-              con.end();
-              req.flash('success', 'Updated your profile.');
-              return res.redirect('/profile');
-            });
-          } else {
-            con.query(`UPDATE profile SET notifications=0 WHERE email=${mysql.escape(req.user.email)};`, (error, resultsUpdate, fields) => {
-              if (error) {
-                console.log(error);
-                con.end();
-                req.flash('error', "Error.");
-                return res.redirect('/profile');
-              }
-              con.end();
-              req.flash('success', 'Updated your profile.');
-              return res.redirect('/profile');
-            });
-          }
+          con.end();
+          req.flash('success', 'Updated your profile.');
+          return res.redirect('/profile');
         }
       }).catch(error => {
         req.flash('error', "Error.");
@@ -471,11 +457,8 @@ router.post(`/profile/change-password`, AuthenticationFunctions.ensureAuthentica
     req.flash('error', formErrors[0].msg);
     return res.redirect('/profile');
   }
-  if (req.body.newPassword.length < 3) {
-    req.flash('error', 'Password must be longer than 3 characters.');
-    return res.redirect('/profile');
-  } else if (req.body.newPassword.includes(' ')) {
-    req.flash('error', 'Password cannot contain spaces.');
+  if (req.body.newPassword.length < 3 || req.body.newPassword.length > 64 || req.body.newPassword2.length < 3 || req.body.newPassword2.length > 64) {
+    req.flash('error', 'Password must be 3 characters or longer and 64 characters or shorter.');
     return res.redirect('/profile');
   }
   let con = mysql.createConnection(dbInfo);
@@ -887,15 +870,20 @@ router.get(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated
 
 router.post(`/matches/chat/messages`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {
   let con = mysql.createConnection(dbInfo);
-  con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(req.body.id)}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
-    if (error) {
-      console.log(error);
-      con.end();
-      return res.send();
-    }
-    req.io.sockets.emit('message', req.body);
-    return res.sendStatus(200);
-  });
+  if (req.body.sendMessageContent.length >= 1 && req.body.sendMessageContent.length <= 2000) {
+    con.query(`INSERT INTO messages (id, sender, recipient, message_content) VALUES (${mysql.escape(req.body.id)}, ${mysql.escape(req.body.currentUser)}, ${mysql.escape(req.body.recipientUser)}, ${mysql.escape(req.body.sendMessageContent)});`, (error, result, fields) => {
+      if (error) {
+        console.log(error);
+        con.end();
+        return res.send();
+      }
+      req.io.sockets.emit('message', req.body);
+      return res.sendStatus(200);
+    });
+  } else {
+    con.end();
+    return res.send();
+  }
 });
 
 router.get(`/matches/chat/like/:id`, AuthenticationFunctions.ensureAuthenticated, (req, res) => {

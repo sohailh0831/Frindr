@@ -63,15 +63,8 @@
 								</div>
 								<div class="form-group m-form__group">
 									<label>Bio:</label>
-									<input type="text" class="form-control m-input" required="" maxlength="500" name="bio"
+									<input type="text" class="form-control m-input" required="" maxlength="5000" name="bio"
 										value="{{user.bio}}">
-								</div>
-								<div class="form-group m-form__group">
-									<label class="m-checkbox">
-										<input id="notificationscheckbox" name="notifications" type="checkbox"> Email
-										Notifications
-										<span></span>
-									</label>
 								</div>
 							</div>
 						</div>
@@ -112,15 +105,15 @@
 							<div class="m-form__section m-form__section--first">
 								<div class="form-group m-form__group">
 									<label>Current Password</label>
-									<input type="password" required="true" name="currentPassword" class="form-control m-input">
+									<input type="password" required="true" name="currentPassword" class="form-control m-input" minlength="3" maxlength="64">
 								</div>
 								<div class="form-group m-form__group">
 									<label>New Password</label>
-									<input type="password" name="newPassword" class="form-control m-input">
+									<input type="password" name="newPassword" class="form-control m-input" minlength="3" maxlength="64">
 								</div>
 								<div class="form-group m-form__group">
 									<label>Confirm New Password</label>
-									<input type="password" name="newPassword2" class="form-control m-input">
+									<input type="password" name="newPassword2" class="form-control m-input" minlength="3" maxlength="64">
 								</div>
 							</div>
 						</div>

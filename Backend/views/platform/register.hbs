@@ -73,20 +73,20 @@
 							{{/if}}
 							<div class="form-group m-form__group">
 								<input class="form-control m-input" type="text" placeholder="Name" name="name"
-									required="true" autocomplete="off">
+									required="true" autocomplete="off" maxlength="240">
 							</div>
 							<div class="form-group m-form__group">
 								<input class="form-control m-input" type="email" placeholder="Email" name="email"
-									required="true" autocomplete="off">
+									required="true" autocomplete="off" maxlength="240">
 							</div>
 
 							<div class="form-group m-form__group">
 								<input class="form-control m-input m-login__form-input--last" type="password" required="true"
-									placeholder="Password" name="password">
+									placeholder="Password" name="password" minlength="3" maxlength="64">
 							</div>
 							<div class="form-group m-form__group">
 								<input class="form-control m-input m-login__form-input--last" type="password" required="true"
-									placeholder="Confirm Password" name="password2">
+									placeholder="Confirm Password" name="password2" minlength="3" maxlength="64">
 							</div>
 							<div class="m-login__form-action">
 								<button id="m_login_signup_submit"
